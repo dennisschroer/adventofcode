@@ -37,10 +37,11 @@ main = do
   print pair
   print (maybe 0 pairProduct pair)
 
-  -- print $ show $ map tripleSum $ triplets numbers
-
   let triplet = find sumIs2020Triple $ triplets numbers
 
   print "part 2"
   print triplet
   print (maybe 0 tripleProduct triplet)
+
+  -- Single line  
+  print $ maybe 0 tripleProduct $ find (\(x,y,z) -> x+y+z==2020) $ triplets $ sort $ map (read::String->Int) (lines contents)
