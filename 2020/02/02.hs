@@ -20,9 +20,8 @@ isValidPassword1 passwordLine =
 isValidPassword2 :: PasswordLine -> Bool
 isValidPassword2 passwordLine =
   let
-    substring = drop (minOccurences passwordLine - 1) $ take (maxOccurences passwordLine) (password passwordLine)
-    firstCharEq = (head substring) == (character passwordLine)
-    lastCharEq = (last substring) == (character passwordLine)
+    firstCharEq = ((password passwordLine) !! (minOccurences passwordLine - 1)) == (character passwordLine)
+    lastCharEq = ((password passwordLine) !! (maxOccurences passwordLine - 1)) == (character passwordLine)
   in (firstCharEq || lastCharEq) && not (firstCharEq && lastCharEq)
 
 main = do
