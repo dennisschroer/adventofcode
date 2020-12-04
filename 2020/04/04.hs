@@ -15,6 +15,9 @@ main = do
 
   print numberOfValids
 
+  -- Part one, single line
+  print $ length $ fst $ partition (7==) $ map (length . delete "cid" . nub . map (head . splitOn ":") . delete "" . splitOneOf "\n ") $ splitOn "\n\n" input
+
   -- Part two
   let passports = map (delete "") $ map (splitOneOf "\n ") $ splitOn "\n\n" input
   let passportFields = map (map (splitOn ":")) passports
