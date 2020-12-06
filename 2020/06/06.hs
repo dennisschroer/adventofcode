@@ -16,8 +16,14 @@ main = do
   putStrLn "== Part 1 =="
   print $ sum $ map (length . combinedAnswersUnion . lines) $ splitOn "\n\n" input
 
+  -- Oneliner
+  print $ sum $ map (length . (foldl union "") . lines) $ splitOn "\n\n" input
+
   putStrLn "== Part 2 =="
   print $ sum $ map (length . combinedAnswersIntersection . lines) $ splitOn "\n\n" input
+
+  -- Oneliner
+  print $ sum $ map (length . (foldl intersect ['a'..'z']) . lines) $ splitOn "\n\n" input
 
 combinedAnswersUnion :: [String] -> String
 combinedAnswersUnion answers = foldl union "" answers
