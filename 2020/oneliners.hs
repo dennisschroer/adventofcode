@@ -3,6 +3,8 @@
 
 import Data.List
 import Data.List.Split
+import Data.Maybe
+import Data.Char
 
 main = do
   putStrLn "Day 1 Part 1 (expense sum 2020)"
@@ -27,7 +29,7 @@ main = do
   readFile "04/input" >>= (\i -> print $ length $ filter (7==) $ map (length . delete "cid" . map (head . splitOn ":") . words) $ splitOn "\n\n" i)
 
   putStrLn "Day 4 Part 2 (passport validation)"
-
+  readFile "04/input" >>= (\i -> print $ length $ foldl (\passports check -> filter check passports) (map (map (\l -> let s = (splitOn ":" l) in (s!!0,s!!1)) . words) $ splitOn "\n\n" i) [(\p -> elem (maybe 0 read $ lookup "byr" p) [1920..2002]), (\p -> elem (maybe 0 read $ lookup "iyr" p) [2010..2020]), (\p -> elem (maybe 0 read $ lookup "eyr" p) [2020..2030]), (\p -> let (v,u) = span isDigit $ fromMaybe "0cm" $ lookup "hgt" p in or [u == "cm" && elem (read v) [150..193], u == "in" && elem (read v) [59..76]]), (\p -> let x = (fromMaybe "#" $ lookup "hcl" p) in head x == '#' && length x == 7 && (all isHexDigit $ tail x)), (\p -> elem (fromMaybe "" $ lookup "ecl" p) ["amb","blu","brn","gry","grn","hzl","oth"]), (\p -> maybe False (\x -> length x == 9 && read x > 0) $ lookup "pid" p)])
 
   putStrLn "Day 5 Part 1 (plane boarding)"
   readFile "05/input" >>= (\i -> print $ maximum $ map (sum . map (2^) . findIndices (\c -> elem c "BR") . reverse) $ lines i)
