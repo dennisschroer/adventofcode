@@ -17,6 +17,12 @@ main = do
   putStrLn "Day 2 Part 2 (password checks)"
   readFile "02/input" >>= (\i -> print $ length $ filter ((\p -> (1==) $ length $ elemIndices (p!!2!!0) [(p!!4)!!((read$p!!0)-1), (p!!4)!!((read$p!!1)-1)]) . splitOneOf "-: ") $ lines i)
 
+  putStrLn "Day 3 Part 1 (toboggan trees)"
+  readFile "03/input" >>= (\i -> print $ length $ filter ('#'==) $ [ lines i !! j !! (mod (j*3) $ length $ head $ lines i) | j <- [0..((length $ lines i) - 1)]])
+
+  putStrLn "Day 3 Part 2 (toboggan trees)"
+  readFile "03/input" >>= (\i -> print $ foldl (*) 1 $ map (\(r,d) -> length $ filter ('#'==) $ [ lines i !! (j*d) !! (mod (j*r) (length $ head $ lines i)) | j <- [0..(((length $ lines i) `div` d) - 1)]]) [(1,1), (3,1), (5,1), (7,1), (1,2)])
+
   putStrLn "Day 5 Part 1 (plane boarding)"
   readFile "05/input" >>= (\i -> print $ maximum $ map (sum . map (2^) . findIndices (\c -> elem c "BR") . reverse) $ lines i)
 
