@@ -23,6 +23,12 @@ main = do
   putStrLn "Day 3 Part 2 (toboggan trees)"
   readFile "03/input" >>= (\i -> print $ foldl (*) 1 $ map (\(r,d) -> length $ filter ('#'==) $ [ lines i !! (j*d) !! (mod (j*r) (length $ head $ lines i)) | j <- [0..(((length $ lines i) `div` d) - 1)]]) [(1,1), (3,1), (5,1), (7,1), (1,2)])
 
+  putStrLn "Day 4 Part 1 (passport validation)"
+  readFile "04/input" >>= (\i -> print $ length $ filter (7==) $ map (length . delete "cid" . map (head . splitOn ":") . words) $ splitOn "\n\n" i)
+
+  putStrLn "Day 4 Part 2 (passport validation)"
+
+
   putStrLn "Day 5 Part 1 (plane boarding)"
   readFile "05/input" >>= (\i -> print $ maximum $ map (sum . map (2^) . findIndices (\c -> elem c "BR") . reverse) $ lines i)
 
