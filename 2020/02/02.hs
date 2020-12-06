@@ -1,4 +1,6 @@
 import Data.Boolean
+import Data.List
+import Data.List.Split
 
 data PasswordLine = PasswordLine { minOccurences :: Int, maxOccurences :: Int, character :: Char, password :: String } deriving (Show)
 
@@ -25,8 +27,21 @@ isValidPassword2 passwordLine =
   in (firstCharEq || lastCharEq) && not (firstCharEq && lastCharEq)
 
 main = do
-  contents <- readFile "input"
-  let passwordLines = map parseLine $ lines contents
+  input <- readFile "input"
+  let passwordLines = map parseLine $ lines input
 
+  putStrLn "== Part 1 =="
   print $ length (filter isValidPassword1 passwordLines)
+
+  -- Oneliner
+  -- (p!!4) = password
+  -- (p!!2!!0) = character
+  -- (read$p!!0) = first number as integer
+  -- (read$p!!1) = second number as integer
+  print $ length $ filter ((\p -> elem (length $ elemIndices (p!!2!!0) (p!!4)) [(read$p!!0)..(read$p!!1)] ) . splitOneOf "-: ") $ lines input
+
+  putStrLn "== Part 2 =="
   print $ length (filter isValidPassword2 passwordLines)
+
+  -- Oneliner
+  print $ length $ filter ((\p -> (1==) $ length $ elemIndices (p!!2!!0) [(p!!4)!!((read$p!!0)-1), (p!!4)!!((read$p!!1)-1)]) . splitOneOf "-: ") $ lines input
