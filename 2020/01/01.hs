@@ -29,13 +29,16 @@ sumIs2020Triple :: (Int, Int, Int) -> Bool
 sumIs2020Triple (x, y, z) = tripleSum (x, y, z) == 2020
 
 main = do
-  contents <- readFile "input"
-  let numbers = sort $ map (read::String->Int) (lines contents)
+  input <- readFile "input"
+  let numbers = sort $ map (read::String->Int) (lines input)
   let pair = find sumIs2020 $ pairs numbers
 
   print "part 1"
   print pair
   print (maybe 0 pairProduct pair)
+
+  -- One line
+  print $ head $ (\l -> [x*y | x<-l, y<-l, x+y==2020]) $ map (read::String->Int) $ lines input
 
   let triplet = find sumIs2020Triple $ triplets numbers
 
@@ -43,5 +46,8 @@ main = do
   print triplet
   print (maybe 0 tripleProduct triplet)
 
-  -- Single line  
-  print $ maybe 0 tripleProduct $ find (\(x,y,z) -> x+y+z==2020) $ triplets $ sort $ map (read::String->Int) (lines contents)
+  -- One line
+  print $ maybe 0 tripleProduct $ find (\(x,y,z) -> x+y+z==2020) $ triplets $ sort $ map (read::String->Int) (lines input)
+
+  -- One line v2
+  print $ head $ (\l -> [x*y*z | x<-l, y<-l, z<-l, x+y+z==2020]) $ map (read::String->Int) $ lines input
