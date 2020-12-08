@@ -1,13 +1,14 @@
+import Data.Char
 import Data.List
 import Data.List.Split
 import Data.List.Utils
-import Data.Char
+import Data.Maybe
 
 main = do
   test <- readFile "test"
   input <- readFile "input"
 
-  putStrLn "== Test =="
+  putStrLn "== Test Part 1 =="
   print $ canHoldBag "shiny gold" $ parse test
   print $ length $ canHoldBag "shiny gold" $ parse test
 
@@ -15,6 +16,13 @@ main = do
   print $ canHoldBag "shiny gold" $ parse input
   print $ length $ canHoldBag "shiny gold" $ parse input
 
+  putStrLn "== Test Part 2 =="
+  print $ bagContents "shiny gold" $ parse test
+  print $ countContents $ bagContents "shiny gold" $ parse test
+
+  putStrLn "== Part 2 =="
+  print $ bagContents "shiny gold" $ parse input
+  print $ countContents $ bagContents "shiny gold" $ parse input
 
 parse :: String -> [(String, [(String, Int)])]
 parse input = map parseLine $ map (replace "." "" . replace " bag" "" . replace " bags" "") $ lines input
@@ -33,3 +41,11 @@ canHoldBag :: String -> [(String, [(String, Int)])] -> [String]
 canHoldBag bag rules =
   let directContainers = canHoldBagDirectly bag rules
   in uniq $ (concat $ map (\b -> canHoldBag b rules) directContainers) ++ directContainers
+
+bagContents :: String -> [(String, [(String, Int)])] -> [(String, Int)]
+bagContents bag rules =
+  let directContents = fromJust $ lookup bag rules
+  in (concat $ map (\(b, c) -> map (\(b2, c2) -> (b2, c*c2)) $ bagContents b rules) directContents) ++ directContents
+
+countContents :: [(String, Int)] -> Int
+countContents contents = sum $ map snd contents
