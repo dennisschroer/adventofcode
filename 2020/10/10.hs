@@ -21,8 +21,11 @@ main = do
   putStrLn "== Part 2 =="
   print $ arrangementCount2 $ parse input
 
+  -- Single line
+  print $ product $ replace [3] [4] $ replace [4] [7] $ map length $ filter (elem 1) $ group $ (\l -> (zipWith (-) (drop 1 l) l) ++ [3]) $ sort $ 0 : (map read $ lines input)
+
 parse :: String -> [Int]
-parse input =  map read $ lines input
+parse input = map read $ lines input
 
 joltDifferences :: [Int] -> [Int]
 joltDifferences adapters = (\l -> (zipWith (-) (drop 1 l) l) ++ [3]) $ sort $ 0 : adapters
