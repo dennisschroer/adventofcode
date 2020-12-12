@@ -11,13 +11,36 @@ main = do
   print $ sum $ map length $ map (filter (=='#')) $ iterateWhileChanging $ parse test
 
   putStrLn "== Part 1 =="
-  let finalState = iterateWhileChanging $ parse input
+  -- let finalState = iterateWhileChanging $ parse input
+  -- printState finalState
+  -- print $ sum $ map length $ map (filter (=='#')) finalState
+
+  putStrLn "== Test Part 2 =="
+  print $ firstSeatInDirection [".L.L.#.#.#.#."] (1,0) ((+1), id)
+  print $ visibleSeats (parse test) (1,1)
+
+  printState $ iterateSeats2 $ parse test
+  putStrLn "========================"
+  printState $ iterateSeats2 $ iterateSeats2 $ parse test
+  putStrLn "========================"
+  printState $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ parse test
+  putStrLn "========================"
+  printState $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ parse test
+  putStrLn "========================"
+  printState $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ parse test
+  putStrLn "========================"
+  printState $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ parse test
+  putStrLn "========================"
+  printState $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ iterateSeats2 $ parse test
+
+  let finalState = iterateWhileChanging2 $ parse test
   printState finalState
   print $ sum $ map length $ map (filter (=='#')) finalState
 
-  putStrLn "== Test Part 2 =="
-
   putStrLn "== Part 2 =="
+  let finalState = iterateWhileChanging2 $ parse input
+  printState finalState
+  print $ sum $ map length $ map (filter (=='#')) finalState
 
 parse :: String -> [String]
 parse input = lines input
@@ -25,6 +48,46 @@ parse input = lines input
 printState :: [String] -> IO()
 printState state = mapM_ putStrLn state
 
+-- Functions for part 2
+getAt :: [String] -> (Int, Int) -> Maybe Char
+getAt state (x, y)
+  -- Coordinates are out of range
+  | x < 0 || y < 0 || x >= (length (head state)) || y >= (length state) = Nothing
+  | otherwise                                                           = Just (state !! y !! x)
+
+-- Apply the given projection untill a seat is found or the edge is reached
+firstSeatInDirection :: [String] -> (Int, Int) -> (Int->Int, Int->Int) -> Maybe Char
+firstSeatInDirection state position (dx, dy) = listToMaybe $ dropWhile (=='.') $ map fromJust $ takeWhile isJust $ map (getAt state) $ drop 1 $ iterate (project (dx, dy)) position
+
+-- For each direction, find the first seat or nothing if there is not seat in sight
+visibleSeats :: [String] -> (Int, Int) -> String
+visibleSeats state position =
+  let u = subtract 1
+      d = (+1)
+  in catMaybes $ map (firstSeatInDirection state position) [(u, u), (id, u), (d, u), (u, id), (d, id), (u, d), (id, d), (d, d)]
+
+-- Apply the projection to coordinates
+project :: (Int -> Int, Int -> Int) -> (Int, Int) -> (Int, Int)
+project (dx, dy) (x,y) = (dx x, dy y)
+
+nextState2 :: String -> Char -> Char
+nextState2 surroundings currentState
+  | currentState == '.'                           = '.'
+  | (length $ filter (=='#') surroundings) > 4    = 'L'
+  | (length $ filter (=='#') surroundings) == 0   = '#'
+  | otherwise                                     = currentState
+
+iterateSeats2 :: [String] -> [String]
+iterateSeats2 state =
+  let
+    height = length state
+    width = length (head state)
+    in [[nextState2 (visibleSeats state (x,y)) (state!!y!!x) | x <- [0..width-1]] | y <- [0..height-1]]
+
+iterateWhileChanging2 :: [String] -> [String]
+iterateWhileChanging2 beginState = last $ unfoldr (\state -> let nextState = iterateSeats2 state in if state == nextState then Nothing else Just (nextState, nextState)) beginState
+
+-- Function for part 1
 iterateWhileChanging :: [String] -> [String]
 iterateWhileChanging beginState = last $ unfoldr (\state -> let nextState = iterateSeats state in if state == nextState then Nothing else Just (nextState, nextState)) beginState
 
