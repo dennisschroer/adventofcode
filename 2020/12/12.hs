@@ -27,9 +27,9 @@ main = do
   print $ (\(x,y,_,_) -> manhattan x y) $ navigateWaypoint (0, 0, 10, 1) $ lines test_extended
 
   putStrLn "== Part 2 =="
-  -- Output: (-2470,8091,-67,9)
+  -- Output: (15039,-37030,-15,23)
   print $ navigateWaypoint (0, 0, 10, 1) $ lines input
-  -- Output: 10561
+  -- Output: 52069
   print $ (\(x,y,_,_) -> manhattan x y) $ navigateWaypoint (0, 0, 10, 1) $ lines input
 
 
@@ -66,6 +66,6 @@ navigateWaypoint (x, y, wx, wy) (command:commands) =
     'S' -> navigateWaypoint (x, y, wx, wy-value) commands
     'E' -> navigateWaypoint (x, y, wx+value, wy) commands
     'W' -> navigateWaypoint (x, y, wx-value, wy) commands
-    'L' -> navigateWaypoint (x, y, -wy, wx) commands
-    'R' -> navigateWaypoint (x, y, wy, -wx) commands
+    'L' -> navigateWaypoint (x, y, fromJust $ lookup value [(0, wx), (90, -wy), (180, -wx), (270, wy)], fromJust $ lookup value [(0, wy), (90, wx), (180, -wy), (270, -wx)]) commands
+    'R' -> navigateWaypoint (x, y, fromJust $ lookup value [(0, wx), (90, wy), (180, -wx), (270, -wy)], fromJust $ lookup value [(0, wy), (90, -wx), (180, -wy), (270, wx)]) commands
     'F' -> navigateWaypoint (x + value * wx, y + value * wy, wx, wy) commands
