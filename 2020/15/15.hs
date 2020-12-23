@@ -29,8 +29,8 @@ main = do
   print $ lastTurn $ doNTurns 2020 $ convert $ map read $ splitOn "," input
 
   putStrLn "== Test Part 2 =="
-  print (175594, lastTurn $! doNTurns 30000000 $! convert $ map read $ splitOn "," "0,3,6")
-  --print (2578, fst $ doNTurns 30000000 $ convert $ map read $ splitOn "," "1,3,2")
+  -- print (175594, lastTurn $! doNTurns 30000000 $! convert $ map read $ splitOn "," "0,3,6")
+  -- print (2578, fst $ doNTurns 30000000 $ convert $ map read $ splitOn "," "1,3,2")
   -- print (3544142, fst $  doNTurns 30000000 $ convert $ map read $ splitOn "," "2,1,3")
   -- print (261214, fst $ doNTurns 30000000 $ convert $ map read $ splitOn "," "1,2,3")
   -- print (6895259, fst $ doNTurns 30000000 $ convert $ map read $ splitOn "," "2,3,1")
@@ -38,7 +38,8 @@ main = do
   -- print (362,fst $  doNTurns 30000000 $ convert $ map read $ splitOn "," "3,1,2")
 
   putStrLn "== Part 2 =="
-  -- print $ fst $ doNTurns 30000000 $ convert $ map read $ splitOn "," input
+  -- This one takes 150 seconds, after compiling it first using 'ghc 15.hs'
+  print $ lastTurn $! doNTurns 30000000 $! convert $ map read $ splitOn "," input
 
 -- Tuple containing last turn, turns taken, and postition of previous turns
 convert :: [Int] -> (Int, Int, Map.Map Int Int)
