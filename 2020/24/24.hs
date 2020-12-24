@@ -71,7 +71,7 @@ removeLoops :: [Direction] -> [Direction]
 removeLoops directions = foldl
   (\result loop ->
     if all (\d -> elem d result) loop
-    then foldl (\r d -> delete d r) result loop
+    then result \\ loop
     else result
   ) directions loops
 
@@ -80,7 +80,7 @@ shorten :: [Direction] -> [Direction]
 shorten directions = foldl
   (\result (path, replacement) ->
     if all (\d -> elem d result) path
-    then foldl (\r d -> delete d r) (replacement:result) path
+    then replacement:(result \\ path)
     else result
   ) directions shortenings
 
