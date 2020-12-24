@@ -15,10 +15,12 @@ main = do
   print $ (\c -> sidesMatch (fromJust $ lookup 3079 c) (fromJust $ lookup 2311 c)) $ map sides $ parse test
 
   print $ matchingImages $ map sides $ parse test
+  print $ map head $ filter (\c -> length c == 2) $ group $ sort $ flattenPairs $ matchingImages $ map sides $ parse test
   print $ product $ map head $ filter (\c -> length c == 2) $ group $ sort $ flattenPairs $ matchingImages $ map sides $ parse test
 
   putStrLn "== Part 1 =="
   print $ matchingImages $ map sides $ parse input
+  print $ map head $ filter (\c -> length c == 2) $ group $ sort $ flattenPairs $ matchingImages $ map sides $ parse input
   print $ product $ map head $ filter (\c -> length c == 2) $ group $ sort $ flattenPairs $ matchingImages $ map sides $ parse input
 
   putStrLn "== Test Part 2 =="
@@ -27,7 +29,7 @@ main = do
 
 -- Parse the input to a list of tiles as (tile id, image)
 parse :: String -> [(Int, [String])]
-parse input =  map (\tile -> (read $ init $ drop 5 $ head tile, tail tile))$ map lines $ splitOn "\n\n" input
+parse input =  map (\tile -> (read $ init $ drop 5 $ head tile, tail tile)) $ map lines $ splitOn "\n\n" input
 
 -- Take each side of the image as if it where rotated to be the top row
 sides :: (Int, [String]) -> (Int, [String])
