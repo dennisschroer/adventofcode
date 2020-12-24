@@ -18,11 +18,16 @@ main = do
   print $ length $ removeDuplicates $ map (normalize . splitDirections) $ lines input
 
   putStrLn "== Test Part 2 =="
+  print $ length $ removeDuplicates $ map (normalize . splitDirections) $ lines test
+  print $ length $ flipTiles $ removeDuplicates $ map (normalize . splitDirections) $ lines test
+
+  print $ map length $ take 101 $ iterate flipTiles (removeDuplicates $ map (normalize . splitDirections) $ lines test)
 
   putStrLn "== Part 2 =="
+  print $ map length $ take 101 $ iterate flipTiles (removeDuplicates $ map (normalize . splitDirections) $ lines input)
 
 splitDirections :: String -> [Direction]
-splitDirections []             =[]
+splitDirections []             = []
 splitDirections ('e':rest)     = East:(splitDirections rest)
 splitDirections ('s':'e':rest) = SouthEast:(splitDirections rest)
 splitDirections ('s':'w':rest) = SouthWest:(splitDirections rest)
@@ -47,9 +52,13 @@ shortenings = [
     ([East,NorthWest], NorthEast)
   ]
 
--- Iteratively remove loops and shorten paths. 20 iterations should be enough. Sort the result
+-- Iteratively remove loops and shorten paths. Tweak iterations if required. Sort the result
 normalize :: [Direction] -> [Direction]
-normalize directions = sort $ last $ take 20 $ iterate (shorten . removeLoops) directions
+normalize directions = sort $ last $ take 6 $ iterate (shorten . removeLoops) directions
+
+-- For optimalisation: do only a single iteration
+singleNormalize :: [Direction] -> [Direction]
+singleNormalize directions = sort $ shorten $ removeLoops directions
 
 -- Try to remove one loop of each type
 removeLoops :: [Direction] -> [Direction]
@@ -60,7 +69,7 @@ removeLoops directions = foldl
     else result
   ) directions loops
 
--- Try to shorten one path of eacth type
+-- Try to shorten one path of each type
 shorten :: [Direction] -> [Direction]
 shorten directions = foldl
   (\result (path, replacement) ->
@@ -69,5 +78,27 @@ shorten directions = foldl
     else result
   ) directions shortenings
 
+-- Remove duplicate paths as they flip the same tile twice
 removeDuplicates :: [[Direction]] -> [[Direction]]
 removeDuplicates paths = map head $ filter (\g -> odd $ length g) $ group $ sort paths
+
+adjacentTiles :: [Direction] -> [[Direction]]
+adjacentTiles tile = map singleNormalize [(East:tile),(SouthEast:tile),(SouthWest:tile),(West:tile),(NorthWest:tile),(NorthEast:tile)]
+
+shouldTurnWhite :: [[Direction]] -> [Direction] -> Bool
+shouldTurnWhite blackTiles tile = notElem (length $ intersect (adjacentTiles tile) blackTiles) [1,2]
+
+shouldTurnBlack :: [[Direction]] -> [Direction] -> Bool
+shouldTurnBlack blackTiles tile = (length $ intersect (adjacentTiles tile) blackTiles) == 2
+
+turnBlackToWhites :: [[Direction]] -> [[Direction]]
+turnBlackToWhites blackTiles = blackTiles \\ (filter (shouldTurnWhite blackTiles) blackTiles)
+
+turnWhitesToBlack :: [[Direction]] -> [[Direction]]
+turnWhitesToBlack blackTiles =
+  let
+    whiteAdjacentTiles = (nub $ concat $ map (\tiles -> tiles \\ blackTiles) $ map adjacentTiles blackTiles)
+    in (filter (shouldTurnBlack blackTiles) whiteAdjacentTiles)
+
+flipTiles :: [[Direction]] -> [[Direction]]
+flipTiles blackTiles = (turnBlackToWhites blackTiles) ++ (turnWhitesToBlack blackTiles)
