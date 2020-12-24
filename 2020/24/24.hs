@@ -1,5 +1,11 @@
+import           Control.Parallel (par, pseq)
 import           Data.List
 import           Data.List.Utils
+
+-- To speed up the calculation, compile with threaded execution:
+-- Compile with: ghc -threaded -O2 24.hs
+-- Run with: ./24 +RTS -N8
+
 
 data Direction = East | SouthEast | SouthWest | West | NorthWest | NorthEast deriving (Eq, Ord, Show)
 
@@ -101,4 +107,15 @@ turnWhitesToBlack blackTiles =
     in (filter (shouldTurnBlack blackTiles) whiteAdjacentTiles)
 
 flipTiles :: [[Direction]] -> [[Direction]]
-flipTiles blackTiles = (turnBlackToWhites blackTiles) ++ (turnWhitesToBlack blackTiles)
+-- Calculate newBlackTiles and flippedWhiteTiles in parallel, and force the calulcation of both lists before
+-- concatenating both lists in the result of this function
+flipTiles blackTiles = (force newBlackTiles) `par` (force flippedWhiteTiles) `pseq` newBlackTiles ++ flippedWhiteTiles
+  where newBlackTiles = turnBlackToWhites blackTiles
+        flippedWhiteTiles = turnWhitesToBlack blackTiles
+
+-- Function copied from http://book.realworldhaskell.org/read/concurrent-and-multicore-programming.html
+-- Forces list to be completely calculated before returning the result
+force :: [a] -> ()
+force xs = go xs `pseq` ()
+    where go (_:xs) = go xs
+          go [] = 1
