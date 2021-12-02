@@ -3,15 +3,15 @@ package nl.dennisschroer.adventofcode.year2021
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class Day1Test {
+internal class Day2Test {
 
     @Test
     fun testPart1() {
-        assertEquals(7, Day1().part1(readNumbers("testDay1")))
+        assertEquals(150, Day2().part1(readLines("testDay2")))
     }
 
     @Test
     fun testPart2() {
-        assertEquals(5, Day1().part2(readNumbers("testDay1")))
+        //assertEquals(5, Day2().part2(readLines("testDay2")))
     }
 }

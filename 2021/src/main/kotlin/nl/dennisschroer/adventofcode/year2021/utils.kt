@@ -5,5 +5,5 @@ fun readLines(filename: String): List<String> {
 }
 
 fun readNumbers(filename: String): List<Int> {
-    return Day1::class.java.getResource("/$filename")!!.readText().trim().split("\n").map { it.toInt() }
+    return readLines(filename).map { it.toInt() }
 }
