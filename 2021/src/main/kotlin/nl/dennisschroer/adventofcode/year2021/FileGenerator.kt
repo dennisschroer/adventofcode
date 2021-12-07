@@ -23,7 +23,7 @@ fun main() {
             }
         """.trimIndent())
 
-        File("2021/src/main/resources/day$it").createNewFile()
+        File("2021/src/main/resources/day$it.txt").createNewFile()
 
         File("2021/src/test/kotlin/nl/dennisschroer/adventofcode/year2021/Day${it}Test.kt").writeText("""
             package nl.dennisschroer.adventofcode.year2021
@@ -47,6 +47,6 @@ fun main() {
             }
         """.trimIndent())
 
-        File("2021/src/test/resources/day${it}Test").createNewFile()
+        File("2021/src/test/resources/testDay${it}.txt").createNewFile()
     }
 }
