@@ -10,8 +10,12 @@ class Day7 {
     }
 
     fun part2(input: String): Int {
-        return -1
+        val crabs : List<Int> = input.split(",").map { it.toInt() }
+        val positions = (crabs.minOrNull()!!  until crabs.maxOrNull()!!).associateWith { position -> crabs.sumOf { seriesSum(abs(position - it)) } }
+        return positions.minByOrNull{it.value}!!.value
     }
+
+    private fun seriesSum(n: Int) = ((1 + n) * n) / 2
 }
 
 fun main() {
