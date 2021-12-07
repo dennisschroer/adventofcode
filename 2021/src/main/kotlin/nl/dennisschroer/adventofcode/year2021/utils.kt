@@ -1,7 +1,11 @@
 package nl.dennisschroer.adventofcode.year2021
 
+fun readFile(filename: String): String {
+    return Day1::class.java.getResource("/$filename")!!.readText().trim()
+}
+
 fun readLines(filename: String): List<String> {
-    return Day1::class.java.getResource("/$filename")!!.readText().trim().split("\n")
+    return readFile(filename).split("\n")
 }
 
 fun readNumbers(filename: String): List<Int> {
