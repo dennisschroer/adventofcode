@@ -27,6 +27,23 @@ class Day4 {
         return winningNumber * unmarkedNumbersSum
     }
 
+    fun part2(input: String): Int {
+        val game = parseInput(input)
+        var lastWinningCard: BingoCard? = null
+        var progress = 0
+
+        while (lastWinningCard == null || !lastWinningCard.hasBingo(game.numbers.take(progress))) {
+            progress++
+            val losingCards = game.cards.filter { !it.hasBingo(game.numbers.take(progress)) }
+            lastWinningCard = if (lastWinningCard == null && losingCards.size == 1) losingCards.single() else lastWinningCard
+        }
+
+        val winningNumber = game.numbers[progress - 1]
+        val unmarkedNumbersSum = (lastWinningCard.grid.flatten() - game.numbers.take(progress).toSet()).sum()
+
+        return winningNumber * unmarkedNumbersSum
+    }
+
     private fun parseInput(input: String): BingoGame {
         val parts = input.split("\n\n")
         val numbers = parts[0].trim().split(",").map { it.toInt() }
@@ -37,10 +54,6 @@ class Day4 {
         }
 
         return BingoGame(numbers, cards)
-    }
-
-    fun part2(input: String): Int {
-        return 0
     }
 }
 
