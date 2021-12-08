@@ -2,7 +2,7 @@ package nl.dennisschroer.adventofcode.year2021
 
 class Day8 {
     fun part1(input: List<String>): Int {
-        return input.map { it.substringAfter("|").trim().split(" ").filter { it.length in listOf(2,3,4,7) }.count() }.sum()
+        return input.sumOf { it.substringAfter("| ").split(" ").count { it.length in listOf(2, 3, 4, 7) } }
     }
 
     fun part2(input: List<String>): Int {
