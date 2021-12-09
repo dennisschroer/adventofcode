@@ -14,6 +14,12 @@ internal class Day8Test {
     @Test
     fun testPart2() {
         val lines = readLines("testDay8")
+
+        assertEquals(
+            mapOf('a' to 'd', 'b' to 'e', 'c' to 'a', 'd' to 'f', 'e' to 'g', 'f' to 'b', 'g' to 'c'),
+            Day8().resolveSegments("acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab".split(" "))
+        )
+
         assertEquals(61229, Day8().part2(lines))
     }
 }
