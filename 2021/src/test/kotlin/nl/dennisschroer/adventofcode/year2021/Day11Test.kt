@@ -14,6 +14,6 @@ internal class Day11Test {
     @Test
     fun testPart2() {
         val lines = readLines("testDay11")
-        assertEquals(0, Day11().part2(lines))
+        assertEquals(195, Day11().part2(lines))
     }
 }

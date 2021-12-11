@@ -65,7 +65,20 @@ class Day11 {
     }
 
     fun part2(input: List<String>): Int {
-        return -1
+        // Grid[y,x]
+        var grid = input.map { it.toList().map { it.digitToInt() } }
+        var step = 0
+
+        while (!allFlashed(grid)) {
+            grid = iterate(grid).second
+            step++
+        }
+
+        return step
+    }
+
+    private fun allFlashed(grid: List<List<Int>>): Boolean {
+        return grid.sumOf { it.count { it == 0 } } == 100
     }
 }
 
