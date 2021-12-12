@@ -18,13 +18,16 @@ class Day12 {
         val end = graph.nodes.first { it.id == "end" }
         val visited = listOf<Node>()
 
-        val routes = findAllRoutes(graph, start, end, visited)
+        val routes = findAllPaths(start, end, visited)
         routes.forEach { println(it) }
         return routes.size
     }
 
-    fun findAllRoutes(graph: Graph, start: Node, end: Node, visited: List<Node>): Set<Path> {
-        println("Finding all routes from $start to $end; visited: $visited")
+    /**
+     * Find all possible paths from start to end by recursively walking each edge from the start node.
+     */
+    fun findAllPaths(start: Node, end: Node, visited: List<Node>): Set<Path> {
+        println("Finding all paths from $start to $end; visited: $visited")
 
         return start.edges.filter { !visited.contains(it.end) }.map { edge ->
             if (edge.start == end) {
@@ -33,13 +36,55 @@ class Day12 {
             } else {
                 // Recursive case
                 val newVisited = if (start.id.first().isLowerCase()) visited + start else visited
-                findAllRoutes(graph, edge.end, end, newVisited).map { Path(listOf(start) + it.nodes) }
+                findAllPaths(edge.end, end, newVisited).map { Path(listOf(start) + it.nodes) }
             }
         }.flatten().toSet()
     }
 
+    fun findAllPathsWhileVisitingOneSmallCaveTwice(start: Node, end: Node, visited: List<Node>): Set<Path> {
+        println("Finding all paths from $start to $end; visited: $visited")
+
+
+        return start.edges.map { edge ->
+            val newVisited = if (start.id.first().isLowerCase()) visited + start else visited
+
+            if (edge.end.id == "start") {
+                // Exception to the rule: never visit start again
+                listOf()
+            } else if (edge.start == end) {
+                // Base case
+                listOf(Path(listOf(end)))
+            } else if (visited.contains(edge.end)) {
+                // Go back and continue with default pathfinding
+                findAllPaths(edge.end, end, newVisited).map { Path(listOf(start) + it.nodes) }
+            } else {
+                // Recursive case
+                findAllPathsWhileVisitingOneSmallCaveTwice(edge.end, end, newVisited).map { Path(listOf(start) + it.nodes) }
+            }
+        }.flatten().toSet()
+
+
+        val defaultRoutes = findAllPathsWhileVisitingOneSmallCaveTwice(start, end, visited)
+
+        // When in here, we can also still opt to visit one small cave for the second time
+        val backingRoutes = start.edges.filter { visited.contains(it.end) }.map { edge ->
+            val newVisited = if (start.id.first().isLowerCase()) visited + start else visited
+            findAllPaths(edge.end, end, newVisited)
+        }.flatten().toSet()
+
+        return defaultRoutes + backingRoutes
+    }
+
     fun part2(input: List<String>): Int {
-        return -1
+        val graph = inputToGraph(input)
+
+        val start = graph.nodes.first { it.id == "start" }
+        val end = graph.nodes.first { it.id == "end" }
+        val visited = listOf<Node>()
+
+        val routes = findAllPathsWhileVisitingOneSmallCaveTwice(start, end, visited)
+        routes.forEach { println(it) }
+        return routes.size
     }
 
     fun inputToGraph(input: List<String>): Graph {
