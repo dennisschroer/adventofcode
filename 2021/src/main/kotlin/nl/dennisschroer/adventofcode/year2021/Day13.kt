@@ -18,8 +18,16 @@ class Day13 {
         }
     }
 
-    fun part2(input: String): Int {
-        return -1
+    fun part2(input: String) {
+        val (dots, instructions) = parseInput(input)
+        val result = instructions.fold(dots) { dots2, instruction -> foldPaper(dots2, instruction) }
+
+        (0..result.maxOf { it.y }).forEach { y ->
+            (0..result.maxOf { it.x }).forEach { x ->
+                print(if (result.contains(Dot(x,y))) '█' else ' ')
+            }
+            println()
+        }
     }
 
     fun parseInput(input: String): Pair<Set<Dot>, List<Pair<Char, Int>>> {
@@ -32,5 +40,6 @@ class Day13 {
 
 fun main() {
     println("Part 1: ${Day13().part1(readFile("day13"))}")
-    println("Part 2: ${Day13().part2(readFile("day13"))}")
+    println("Part 2:")
+    Day13().part2(readFile("day13"))
 }

@@ -7,13 +7,11 @@ internal class Day13Test {
 
     @Test
     fun testPart1() {
-        val lines = readLines("testDay13")
-        assertEquals(17, Day13().part1(lines))
+        assertEquals(17, Day13().part1(readFile("testDay13")))
     }
 
     @Test
     fun testPart2() {
-        val lines = readLines("testDay13")
-        assertEquals(0, Day13().part2(lines))
+        Day13().part2(readFile("testDay13"))
     }
 }
