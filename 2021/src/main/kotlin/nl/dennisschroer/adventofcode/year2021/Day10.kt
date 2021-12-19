@@ -34,8 +34,27 @@ class Day10 {
             }.sum()
     }
 
-    fun part2(input: List<String>): Int {
-        return -1
+    fun part2(input: List<String>): Long {
+        val scoreMap = mapOf('(' to 1L, '[' to 2L, '{' to 3L, '<' to 4L)
+
+        val scores = input.map { line ->
+            // Golf away all closed pairs
+            (0..line.length).fold(line) { it, _ ->
+                it.replace("()", "")
+                    .replace("[]", "")
+                    .replace("<>", "")
+                    .replace("{}", "")
+            }
+            // Filter only incomplete lines; no closing brackets
+        }.filter { !it.contains("[)\\]>}]".toRegex()) }
+
+            // To autocomplete, reverse the opening brackets
+            .map { it.reversed() }
+
+            // Calculate score
+            .map { it.fold(0L) { score, char -> score * 5 + scoreMap[char]!! } }.sorted()
+
+        return scores[scores.size / 2]
     }
 }
 
