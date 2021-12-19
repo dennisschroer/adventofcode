@@ -1,39 +1,22 @@
 package nl.dennisschroer.adventofcode.year2021
 
+import java.lang.Exception
+import java.util.Collections.max
+import java.util.Collections.min
+
 class Day16 {
     // AST classes
     abstract class Packet(open val version: Int, open val type: Int)
     data class LiteralPacket(override val version: Int, override val type: Int, val literal: Long) : Packet(version, type)
     data class OperatorPacket(override val version: Int, override val type: Int, val packets: List<Packet>) : Packet(version, type)
 
-    fun part1(hex: String): Int {
-        val packet = parseHex(hex)
-        return walk(packet, { it.version }, { packet, children -> packet.version + children.sum() })
-    }
+    // AST parser methods
+    private fun hexToBinary(hex: String): String = hex.map { it.digitToInt(16).toString(2).padStart(4, '0') }.joinToString("")
+    private fun parse(binary: String): Packet = readPacket(binary).first
+    fun parseHex(hex: String) = parse(hexToBinary(hex))
 
-    private fun walk(
-        packet: Packet,
-        visitLiteral: (literalPacket: LiteralPacket) -> Int,
-        visitOperator: (operatorPacket: OperatorPacket, children: List<Int>) -> Int
-    ): Int {
-        return if (packet is LiteralPacket) {
-            visitLiteral(packet)
-        } else {
-            visitOperator(packet as OperatorPacket, packet.packets.map { walk(it, visitLiteral, visitOperator) })
-        }
-    }
-
-    fun part2(hex: String): Int {
-        return -1
-    }
-
-    fun hexToBinary(hex: String): String = hex.map { it.digitToInt(16).toString(2).padStart(4, '0') }.joinToString("")
-
-    fun parse(binary: String): Packet {
-        return readPacket(binary).first
-    }
-
-    fun readPacket(binary: String): Pair<Packet, String> {
+    // AST-node parsing methods
+    private fun readPacket(binary: String): Pair<Packet, String> {
         val (version, stream1) = readVersion(binary)
         val (type, stream2) = readType(stream1)
 
@@ -99,7 +82,40 @@ class Day16 {
     private fun readType0Length(stream: String): Pair<Int, String> = stream.take(15).toInt(2) to stream.drop(15)
     private fun readType1Length(stream: String): Pair<Int, String> = stream.take(11).toInt(2) to stream.drop(11)
 
-    fun parseHex(hex: String) = parse(hexToBinary(hex))
+    // Method to walk over the nodes in the AST
+    private fun walk(
+        packet: Packet,
+        visitLiteral: (literalPacket: LiteralPacket) -> Long,
+        visitOperator: (operatorPacket: OperatorPacket, children: List<Long>) -> Long
+    ): Long {
+        return if (packet is LiteralPacket) {
+            visitLiteral(packet)
+        } else {
+            visitOperator(packet as OperatorPacket, packet.packets.map { walk(it, visitLiteral, visitOperator) })
+        }
+    }
+
+    // Solutions to puzzle
+    fun part1(hex: String): Long {
+        val packet = parseHex(hex)
+        return walk(packet, { it.version.toLong() }, { packet, children -> packet.version + children.sum() })
+    }
+
+    fun part2(hex: String): Long {
+        val packet = parseHex(hex)
+        return walk(packet, { it.literal }, { childPacket, children ->
+            when (childPacket.type) {
+                0 -> children.sum()
+                1 -> children.reduce(Long::times)
+                2 -> min(children)
+                3 -> max(children)
+                5 -> if (children[0] > children[1]) 1 else 0
+                6 -> if (children[0] < children[1]) 1 else 0
+                7 -> if (children[0] == children[1]) 1 else 0
+                else -> throw Exception()
+            }
+        })
+    }
 }
 
 fun main() {

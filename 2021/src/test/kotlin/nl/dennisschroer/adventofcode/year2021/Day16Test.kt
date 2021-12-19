@@ -58,6 +58,13 @@ internal class Day16Test {
 
     @Test
     fun testPart2() {
-        assertEquals(0, Day16().part2(""))
+        assertEquals(3, Day16().part2("C200B40A82"))
+        assertEquals(54, Day16().part2("04005AC33890"))
+        assertEquals(7, Day16().part2("880086C3E88112"))
+        assertEquals(9, Day16().part2("CE00C43D881120"))
+        assertEquals(1, Day16().part2("D8005AC2A8F0"))
+        assertEquals(0, Day16().part2("F600BC2D8F"))
+        assertEquals(0, Day16().part2("9C005AC2F8F0"))
+        assertEquals(1, Day16().part2("9C0141080250320F1802104A08"))
     }
 }
