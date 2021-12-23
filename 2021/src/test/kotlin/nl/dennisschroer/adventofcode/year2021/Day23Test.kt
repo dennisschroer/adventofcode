@@ -7,11 +7,11 @@ internal class Day23Test {
 
     @Test
     fun testPart1() {
-        assertEquals(12521, Day23().part1(".......BACDBCDA".toList()))
+        assertEquals(12521, Day23().part1(".......BACDBCDA"))
     }
 
     @Test
     fun testPart2() {
-        assertEquals(0, Day23().part2(".......BACDBCDA".toList()))
+        assertEquals(0, Day23().part2(".......BACDBCDA"))
     }
 }
