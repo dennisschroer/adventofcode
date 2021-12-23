@@ -1,5 +1,7 @@
 package nl.dennisschroer.adventofcode.year2021
 
+import kotlin.math.abs
+
 class Day19 {
     data class Scanner(
         val number: Int,
@@ -10,6 +12,7 @@ class Day19 {
 
     data class Beacon(val x: Int, val y: Int, val z: Int) : Comparable<Beacon> {
         fun plus(other: Beacon): Beacon = Beacon(this.x + other.x, this.y + other.y, this.z + other.z)
+
         override fun compareTo(other: Beacon): Int {
             return if (this.x != other.x) {
                 this.x - other.x
@@ -19,7 +22,6 @@ class Day19 {
                 this.z - other.z
             }
         }
-
 
         override fun toString(): String = "$x,$y,$z"
     }
@@ -46,9 +48,7 @@ class Day19 {
     private val transformations: List<(Beacon) -> Beacon> =
         orientations.flatMap { orientate -> rotations.map { rotate -> { rotate(orientate(it)) } } }
 
-    fun part1(input: String): Int {
-        val scanners = readScanners(input)
-
+    private fun alignScanners(scanners: List<Scanner>) {
         while (scanners.find { it.position == null } != null) {
             scanners.filter { it.position != null }.forEach { fixedScanner ->
                 scanners.filter { it.position == null }.forEach { scannerB ->
@@ -68,12 +68,17 @@ class Day19 {
                             scannerB.detectedBeacons = transformedBeacons.map { it.plus(relativeDistance) }.toSet()
 
                             val demoTransformation = transformation(Beacon(0, 1, 2))
-                            println("Matched scanner ${fixedScanner.number} and ${scannerB.number} with relative distance ${relativeDistance} and transformation $demoTransformation. Scanner ${scannerB.number} is on position ${scannerB.position}")
+                            println("Matched scanner ${fixedScanner.number} and ${scannerB.number} with relative distance $relativeDistance and transformation $demoTransformation. Scanner ${scannerB.number} is on position ${scannerB.position}")
                         }
                     }
                 }
             }
         }
+    }
+
+    fun part1(input: String): Int {
+        val scanners = readScanners(input)
+        alignScanners(scanners)
 
         val allBeacons = scanners.flatMap { it.detectedBeacons }.toSortedSet()
 
@@ -81,6 +86,17 @@ class Day19 {
         allBeacons.forEach { println(it) }
 
         return allBeacons.size
+    }
+
+    fun part2(input: String): Int {
+        val scanners = readScanners(input)
+        alignScanners(scanners)
+
+        return scanners.flatMap { a ->
+            scanners.map { b ->
+                abs(a.position!!.x - b.position!!.x) + abs(a.position!!.y - b.position!!.y) + abs(a.position!!.z - b.position!!.z)
+            }
+        }.maxOf { it }
     }
 
     private fun readScanners(input: String): List<Scanner> {
@@ -97,10 +113,6 @@ class Day19 {
 
     private fun readBeacon(line: String): Beacon {
         return line.split(",").let { Beacon(it[0].toInt(), it[1].toInt(), it[2].toInt()) }
-    }
-
-    fun part2(input: String): Int {
-        return -1
     }
 }
 
