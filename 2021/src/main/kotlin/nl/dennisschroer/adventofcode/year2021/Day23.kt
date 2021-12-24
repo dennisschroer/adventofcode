@@ -7,202 +7,180 @@ class Day23 {
      *      Map of the game
      * #########################
      * # 0 1 . 2 . 3 . 4 . 5 6 #
-     * ##### 7 # 9 # 11# 13#####
-     *     # 8 # 10# 12# 14#
+     * ##### A # B # C # D #####
+     *     # A # B # C # D #
      *     #################
      */
-    data class Game(val state: String, val energy: Int)
+    data class Game(val hallway: String, val roomA: String, val roomB: String, val roomC: String, val roomD: String, val energy: Int) {
+        fun isCompleted(): Boolean = hallway == "......." &&
+                roomA.filterNot { it == 'A' }.isEmpty() &&
+                roomB.filterNot { it == 'B' }.isEmpty() &&
+                roomC.filterNot { it == 'C' }.isEmpty() &&
+                roomD.filterNot { it == 'D' }.isEmpty()
 
-    private val COMPLETED_STATE: String = ".......AABBCCDD"
+        fun roomForLetter(letter: Char): String {
+            return when (letter) {
+                'A' -> roomA
+                'B' -> roomB
+                'C' -> roomC
+                'D' -> roomD
+                else -> throw Exception()
+            }
+        }
 
-    data class Rule(val room: Int, val hallway: Int, val blockers: List<Int>, val distance: Int) {
+        fun roomContainsOnlyFinalPods(letter: Char): Boolean = roomForLetter(letter).filterNot { it == letter }.isEmpty()
+        fun finalPodsCount(letter: Char): Int = roomForLetter(letter).takeLastWhile { it == letter }.count()
+        fun firstInRoom(letter: Char): Char = roomForLetter(letter).getOrElse(0) { '.' }
+
+        override fun toString(): String {
+            val builder = StringBuilder()
+
+            builder.append(hallway.toCharArray().joinToString(" "))
+            builder.append("   Energy $energy\n")
+            (0 until 4).forEach { i ->
+                builder.append("   ")
+                builder.append(listOf('A', 'B', 'C', 'D').map { roomForLetter(it).padStart(4, '.')[i] }.joinToString(" "))
+                builder.append("\n")
+            }
+
+            return builder.toString()
+        }
+    }
+
+    /**
+     * A rule is a possible move from a room to the hallway or vice versa.
+     */
+    data class Rule(val room: Char, val hallway: Int, val blockers: List<Int>, val distance: Int) {
         /**
          * Is the move from the room to the hallway allowed?
          */
-        fun isAllowed(game: Game): Boolean {
+        fun isMoveToHallwayAllowed(game: Game): Boolean {
             // room should not be empty
-            return game.state[room] != '.' &&
+            return game.firstInRoom(room) != '.' &&
                     // hallway should be empty
-                    game.state[hallway] == '.' &&
+                    game.hallway[hallway] == '.' &&
                     // everything in between should be empty
-                    blockers.all { game.state[it] == '.' } &&
+                    blockers.all { game.hallway[it] == '.' } &&
                     // Do not allow "finished" amphipods to move
-                    when (room) {
-                        7 -> game.state[7] != 'A' || game.state[8] != 'A'
-                        8 -> game.state[8] != 'A'
-                        9 -> game.state[9] != 'B' || game.state[10] != 'B'
-                        10 -> game.state[10] != 'B'
-                        11 -> game.state[11] != 'C' || game.state[12] != 'C'
-                        12 -> game.state[12] != 'C'
-                        13 -> game.state[13] != 'D' || game.state[14] != 'D'
-                        14 -> game.state[14] != 'D'
-                        else -> true
-                    }
+                    !game.roomContainsOnlyFinalPods(room)
         }
 
         /**
          * Is the move from the hallway to the room allowed?
          */
-        fun isinverseAllowed(game: Game): Boolean {
-            return game.state[room] == '.' && blockers.all { game.state[it] == '.' } &&
-                    when (room) {
-                        7 -> game.state[hallway] == 'A' && game.state[8] == 'A'
-                        8 -> game.state[hallway] == 'A'
-                        9 -> game.state[hallway] == 'B' && game.state[10] == 'B'
-                        10 -> game.state[hallway] == 'B'
-                        11 -> game.state[hallway] == 'C' && game.state[12] == 'C'
-                        12 -> game.state[hallway] == 'C'
-                        13 -> game.state[hallway] == 'D' && game.state[14] == 'D'
-                        14 -> game.state[hallway] == 'D'
-                        else -> false
-                    }
+        fun isMoveToRoomAllowed(game: Game): Boolean {
+            val pod = game.hallway[hallway]
+
+            // Pod can only move to its own room
+            return pod == room &&
+                    // everything in between should be empty
+                    blockers.all { game.hallway[it] == '.' } &&
+                    // room should only contain final pods
+                    game.roomContainsOnlyFinalPods(room)
         }
     }
 
     val rules = listOf(
-        Rule(7, 0, listOf(1), 3),
-        Rule(7, 1, listOf(), 2),
-        Rule(7, 2, listOf(), 2),
-        Rule(7, 3, listOf(2), 4),
-        Rule(7, 4, listOf(2, 3), 6),
-        Rule(7, 5, listOf(2, 3, 4), 8),
-        Rule(7, 6, listOf(2, 3, 4, 5), 9),
+        Rule('A', 0, listOf(1), 3),
+        Rule('A', 1, listOf(), 2),
+        Rule('A', 2, listOf(), 2),
+        Rule('A', 3, listOf(2), 4),
+        Rule('A', 4, listOf(2, 3), 6),
+        Rule('A', 5, listOf(2, 3, 4), 8),
+        Rule('A', 6, listOf(2, 3, 4, 5), 9),
 
-        Rule(8, 0, listOf(7, 1), 4),
-        Rule(8, 1, listOf(7), 3),
-        Rule(8, 2, listOf(7), 3),
-        Rule(8, 3, listOf(7, 2), 5),
-        Rule(8, 4, listOf(7, 2, 3), 7),
-        Rule(8, 5, listOf(7, 2, 3, 4), 8),
-        Rule(8, 6, listOf(7, 2, 3, 4, 5), 10),
+        Rule('B', 0, listOf(1, 2), 5),
+        Rule('B', 1, listOf(2), 4),
+        Rule('B', 2, listOf(), 2),
+        Rule('B', 3, listOf(), 2),
+        Rule('B', 4, listOf(3), 4),
+        Rule('B', 5, listOf(3, 4), 6),
+        Rule('B', 6, listOf(3, 4, 5), 7),
 
-        Rule(9, 0, listOf(1, 2), 5),
-        Rule(9, 1, listOf(2), 4),
-        Rule(9, 2, listOf(), 2),
-        Rule(9, 3, listOf(), 2),
-        Rule(9, 4, listOf(3), 4),
-        Rule(9, 5, listOf(3, 4), 6),
-        Rule(9, 6, listOf(3, 4, 5), 7),
+        Rule('C', 0, listOf(1, 2, 3), 7),
+        Rule('C', 1, listOf(2, 3), 6),
+        Rule('C', 2, listOf(3), 4),
+        Rule('C', 3, listOf(), 2),
+        Rule('C', 4, listOf(), 2),
+        Rule('C', 5, listOf(4), 4),
+        Rule('C', 6, listOf(4, 5), 5),
 
-        Rule(10, 0, listOf(9, 1, 2), 6),
-        Rule(10, 1, listOf(9, 2), 5),
-        Rule(10, 2, listOf(9), 3),
-        Rule(10, 3, listOf(9), 3),
-        Rule(10, 4, listOf(9, 3), 5),
-        Rule(10, 5, listOf(9, 3, 4), 7),
-        Rule(10, 6, listOf(9, 3, 4, 5), 8),
-
-        Rule(11, 0, listOf(1, 2, 3), 7),
-        Rule(11, 1, listOf(2, 3), 6),
-        Rule(11, 2, listOf(3), 4),
-        Rule(11, 3, listOf(), 2),
-        Rule(11, 4, listOf(), 2),
-        Rule(11, 5, listOf(4), 4),
-        Rule(11, 6, listOf(4, 5), 5),
-
-        Rule(12, 0, listOf(11, 1, 2, 3), 8),
-        Rule(12, 1, listOf(11, 2, 3), 7),
-        Rule(12, 2, listOf(11, 3), 5),
-        Rule(12, 3, listOf(11), 3),
-        Rule(12, 4, listOf(11), 3),
-        Rule(12, 5, listOf(11, 4), 5),
-        Rule(12, 6, listOf(11, 4, 5), 6),
-
-        Rule(13, 0, listOf(1, 2, 3, 4), 9),
-        Rule(13, 1, listOf(2, 3, 4), 8),
-        Rule(13, 2, listOf(3, 4), 6),
-        Rule(13, 3, listOf(4), 4),
-        Rule(13, 4, listOf(), 2),
-        Rule(13, 5, listOf(), 2),
-        Rule(13, 6, listOf(5), 3),
-
-        Rule(14, 0, listOf(13, 1, 2, 3, 4), 10),
-        Rule(14, 1, listOf(13, 2, 3, 4), 9),
-        Rule(14, 2, listOf(13, 3, 4), 7),
-        Rule(14, 3, listOf(13, 4), 5),
-        Rule(14, 4, listOf(13), 3),
-        Rule(14, 5, listOf(13), 3),
-        Rule(14, 6, listOf(13, 5), 4),
+        Rule('D', 0, listOf(1, 2, 3, 4), 9),
+        Rule('D', 1, listOf(2, 3, 4), 8),
+        Rule('D', 2, listOf(3, 4), 6),
+        Rule('D', 3, listOf(4), 4),
+        Rule('D', 4, listOf(), 2),
+        Rule('D', 5, listOf(), 2),
+        Rule('D', 6, listOf(5), 3),
     )
-
-    fun printGame(game: Game) {
-        print(game.state.take(7).toCharArray().joinToString(" "))
-        println("   Energy ${game.energy}")
-        print("   ")
-        println(listOf(7, 9, 11, 13).map { game.state[it] }.joinToString(" "))
-        print("   ")
-        println(listOf(8, 10, 12, 14).map { game.state[it] }.joinToString(" "))
-    }
-
-    private fun reduceSolutions(games: List<Game>): List<Game> {
-        if (games.isEmpty()) return games
-
-        val completedGames = games.filter { it.state == COMPLETED_STATE }
-        val uncompletedGames = games.filterNot { it.state == COMPLETED_STATE }
-
-        val bestCompletedGame = completedGames.minByOrNull { it.energy }
-        val maxScore = uncompletedGames.maxOfOrNull { completionScore(it) } ?: 0
-        // Some magic threshold, just keep lowering it until it works
-        val bestUncompletedGames = uncompletedGames
-            .filter { it.energy >= (bestCompletedGame?.energy ?: 0) }
-            .filter { completionScore(it) >= maxScore * 3 / 4 } // Some magic threshold to reduce amount of possible solutions
-
-        println("${games.size} games contain ${completedGames.size} completed games and ${uncompletedGames.size} uncompleted games (reduced to ${bestUncompletedGames.size}, maxScore=$maxScore)")
-
-        // Keep only the best completed solution plus all promising uncompleted games
-        if (bestCompletedGame != null) {
-            return listOf(bestCompletedGame) + bestUncompletedGames
-        }
-        return bestUncompletedGames
-    }
-
-    private fun completionScore(game: Game): Int {
-        return (listOf(
-            game.state[7] == 'A' && game.state[8] == 'A',
-            game.state[8] == 'A',
-            game.state[9] == 'B' && game.state[10] == 'B',
-            game.state[10] == 'B',
-            game.state[11] == 'C' && game.state[12] == 'C',
-            game.state[12] == 'C',
-            game.state[13] == 'D' && game.state[14] == 'D',
-            game.state[14] == 'D',
-        ).count { it } + 1) * 100000 - game.energy
-    }
 
     /**
      * Play a single round executing all possible rules and returning all possible next game states.
      */
     private fun doRound(game: Game): List<Game> {
         // If it is completed keep it as a solution
-        if (game.state == COMPLETED_STATE) return listOf(game)
+        if (game.isCompleted()) return listOf(game)
 
-        val allowedRules = rules.filter { it.isinverseAllowed(game) }
-        return if (allowedRules.isNotEmpty()) {
-            // Optimalization: if one amphipod can be moved in the room, always prefer to do this first
-            return listOf(applyInverseRule(game, allowedRules[0]))
-        } else {
-            rules.filter { it.isAllowed(game) }.map { rule -> applyRule(game, rule) }
+        // Optimalization: if one amphipod can be moved in the room, always prefer to do this first
+        val moveToRoom = rules.find { it.isMoveToRoomAllowed(game) }
+        if (moveToRoom != null) {
+            return listOf(applyMoveToRoom(game, moveToRoom))
         }
+
+        // Apply all possible rules
+        return rules.filter { it.isMoveToHallwayAllowed(game) }.map { rule -> applyMoveToHallway(game, rule) }
     }
 
-    private fun applyRule(game: Game, rule: Rule): Game {
+    /**
+     * Return a new game where a pod is moved from a room to a position in the hallway
+     */
+    private fun applyMoveToHallway(game: Game, rule: Rule): Game {
+        val pod = game.firstInRoom(rule.room)
+
         return Game(
-            game.state.toMutableList().also {
-                it[rule.hallway] = game.state[rule.room]
-                it[rule.room] = '.'
-            }.joinToString(""),
-            game.energy + (scoreForLetter(game.state[rule.room]) * rule.distance)
+            game.hallway.toMutableList().also { it[rule.hallway] = pod }.joinToString(""),
+            if (rule.room == 'A') game.roomA.drop(1) else game.roomA,
+            if (rule.room == 'B') game.roomB.drop(1) else game.roomB,
+            if (rule.room == 'C') game.roomC.drop(1) else game.roomC,
+            if (rule.room == 'D') game.roomD.drop(1) else game.roomD,
+            game.energy + (scoreForLetter(pod) * rule.distance)
         )
     }
 
-    private fun applyInverseRule(game: Game, rule: Rule): Game {
+    /**
+     * Return a new game where a pod in the hallway is moved to its room
+     */
+    private fun applyMoveToRoom(game: Game, rule: Rule): Game {
+        val pod = game.hallway[rule.hallway]
+
         return Game(
-            game.state.toMutableList().also {
-                it[rule.room] = game.state[rule.hallway]
-                it[rule.hallway] = '.'
-            }.joinToString(""),
-            game.energy + (scoreForLetter(game.state[rule.hallway]) * rule.distance)
+            game.hallway.toMutableList().also { it[rule.hallway] = '.' }.joinToString(""),
+            if (rule.room == 'A') pod + game.roomA else game.roomA,
+            if (rule.room == 'B') pod + game.roomB else game.roomB,
+            if (rule.room == 'C') pod + game.roomC else game.roomC,
+            if (rule.room == 'D') pod + game.roomD else game.roomD,
+            game.energy + (scoreForLetter(pod) * rule.distance)
         )
+    }
+
+    private fun reduceSolutions(games: List<Game>): List<Game> {
+        if (games.isEmpty()) return games
+
+        // Some possible optimization here: all games seem to finish in the same round
+        val (completedGames, uncompletedGames) = games.partition { it.isCompleted() }
+
+        val bestCompletedGame = completedGames.minByOrNull { it.energy }
+
+        // If an uncompleted game already uses more energy don't bother
+        val bestUncompletedGames = uncompletedGames.filter { it.energy < (bestCompletedGame?.energy ?: Int.MAX_VALUE) }
+
+        println("${games.size} games contain ${completedGames.size} completed games and ${uncompletedGames.size} uncompleted games (reduced to ${bestUncompletedGames.size})")
+
+        // Keep only the best completed solution plus all promising uncompleted games
+        if (bestCompletedGame != null) {
+            return listOf(bestCompletedGame) + bestUncompletedGames
+        }
+        return bestUncompletedGames
     }
 
     private fun scoreForLetter(c: Char): Int {
@@ -215,9 +193,23 @@ class Day23 {
         }
     }
 
-    fun part1(gameState: String): Int {
-        val game = Game(gameState, 0)
-        printGame(game)
+    private fun applyFixedEnergy(game: Game): Game {
+        // Energy required to move to the front of the room.
+        val moveOutEnergy = listOf('A', 'B', 'C', 'D').flatMap { room ->
+            game.roomForLetter(room).dropLastWhile { it == room }.mapIndexed { index, char -> index * scoreForLetter(char) }
+        }.sum()
+
+        // Energy required to fill the room from the front of the room
+        val moveInEnergy = listOf('A', 'B', 'C', 'D').flatMap { room ->
+            game.roomForLetter(room).dropLastWhile { it == room }.mapIndexed { index, _ -> index * scoreForLetter(room) }
+        }.sum()
+
+        return Game(game.hallway, game.roomA, game.roomB, game.roomC, game.roomD, moveOutEnergy + moveInEnergy)
+    }
+
+    fun runGame(initialGame: Game): Game {
+        val game = applyFixedEnergy(initialGame)
+        println(game)
 
         var games = listOf(game)
 
@@ -228,22 +220,24 @@ class Day23 {
             // Reduce
             games = reduceSolutions(games)
 
-            println("There are ${games.size} possible games")
-
             // Repeat
         } while (games.size > 1)
 
-        games.forEach { printGame(it) }
+        games.forEach { println(it) }
 
-        return games[0].energy
+        return games[0]
     }
 
-    fun part2(gameState: String): Int {
-        return -1
+    fun part1(initialGame: Game): Int {
+        return runGame(initialGame).energy
+    }
+
+    fun part2(initialGame: Game): Int {
+        return runGame(initialGame).energy
     }
 }
 
 fun main() {
-    println("Part 1: ${Day23().part1(".......BCBCDADA")}")
-    println("Part 2: ${Day23().part2(".......BCBCDADA")}")
+    println("Part 1: ${Day23().part1(Day23.Game(".......", "BC", "BC", "DA", "DA", 0))}")
+    println("Part 2: ${Day23().part2(Day23.Game(".......", "BDDC", "BCBC", "DBAA", "DACA", 0))}")
 }
