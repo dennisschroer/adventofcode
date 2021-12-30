@@ -39,15 +39,6 @@ class Day22 {
             }
 
             println("Step ${index + 1} of ${steps.size}; Regions: ${regions.size}, on: ${regions.sumOf { it.size() }}")
-
-            // Assert step
-            regions.forEachIndexed { i, a ->
-                regions.drop(i + 1).forEach { b ->
-                    assert(!a.overlaps(b)) {
-                        "$a overlaps with $b"
-                    }
-                }
-            }
         }
 
         return regions.sumOf { it.size() }
@@ -55,68 +46,28 @@ class Day22 {
 
     fun subtractRegion(region: Region, overlapping: Region): List<Region> {
         // Split the region in 27 sections
-        val newRegions = mutableSetOf<Region>()
-
-        listOf((region.xs.first until overlapping.xs.first), (max(region.xs.first, overlapping.xs.first)..min(region.xs.last, overlapping.xs.last)), (overlapping.xs.last + 1..region.xs.last)).forEach { xs ->
-            listOf((region.ys.first until overlapping.ys.first), (max(region.ys.first, overlapping.ys.first)..min(region.ys.last, overlapping.ys.last)), (overlapping.ys.last + 1..region.ys.last)).forEach { ys ->
-                listOf((region.zs.first until overlapping.zs.first), (max(region.zs.first, overlapping.zs.first)..min(region.zs.last, overlapping.zs.last)), (overlapping.zs.last + 1..region.zs.last)).forEach { zs ->
-                    newRegions.add(Region(xs, ys, zs))
+        val newRegions = listOf(
+            (region.xs.first until overlapping.xs.first),
+            (max(region.xs.first, overlapping.xs.first)..min(region.xs.last, overlapping.xs.last)),
+            (overlapping.xs.last + 1..region.xs.last)
+        ).flatMap { xs ->
+            listOf(
+                (region.ys.first until overlapping.ys.first),
+                (max(region.ys.first, overlapping.ys.first)..min(region.ys.last, overlapping.ys.last)),
+                (overlapping.ys.last + 1..region.ys.last)
+            ).flatMap { ys ->
+                listOf(
+                    (region.zs.first until overlapping.zs.first),
+                    (max(region.zs.first, overlapping.zs.first)..min(region.zs.last, overlapping.zs.last)),
+                    (overlapping.zs.last + 1..region.zs.last)
+                ).map { zs ->
+                    Region(xs, ys, zs)
                 }
             }
         }
 
+        // Return only non-empty ones without overlap
         return newRegions.filter { it.size() > 0 }.filter { !it.overlaps(overlapping) }
-
-//
-//        // Split the region in 8 sections
-//        val splitPoint = Triple(
-//            if (region.xs.contains(overlapping.xs.first)) overlapping.xs.first else overlapping.xs.last + 1,
-//            if (region.ys.contains(overlapping.ys.first)) overlapping.ys.first else overlapping.ys.last + 1,
-//            if (region.zs.contains(overlapping.zs.first)) overlapping.zs.first else overlapping.zs.last + 1,
-//        )
-//
-//        return listOf(
-//            Region(
-//                region.xs.first until splitPoint.first,
-//                region.ys.first until splitPoint.second,
-//                region.zs.first until splitPoint.third,
-//            ),
-//            Region(
-//                splitPoint.first..region.xs.last,
-//                region.ys.first until splitPoint.second,
-//                region.zs.first until splitPoint.third,
-//            ),
-//            Region(
-//                region.xs.first until splitPoint.first,
-//                splitPoint.second..region.ys.last,
-//                region.zs.first until splitPoint.third,
-//            ),
-//            Region(
-//                splitPoint.first..region.xs.last,
-//                splitPoint.second..region.ys.last,
-//                region.zs.first until splitPoint.third,
-//            ),
-//            Region(
-//                region.xs.first until splitPoint.first,
-//                region.ys.first until splitPoint.second,
-//                splitPoint.third..region.zs.last,
-//            ),
-//            Region(
-//                splitPoint.first..region.xs.last,
-//                region.ys.first until splitPoint.second,
-//                splitPoint.third..region.zs.last,
-//            ),
-//            Region(
-//                region.xs.first until splitPoint.first,
-//                splitPoint.second..region.ys.last,
-//                splitPoint.third..region.zs.last,
-//            ),
-//            Region(
-//                splitPoint.first..region.xs.last,
-//                splitPoint.second..region.ys.last,
-//                splitPoint.third..region.zs.last,
-//            )
-//        ).filter { it.size() > 0 }
     }
 
     private fun parseRebootSteps(input: List<String>, min: Int, max: Int): List<RebootStep> {
