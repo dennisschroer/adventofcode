@@ -11,3 +11,6 @@ fun readLines(filename: String): List<String> {
 fun readNumbers(filename: String): List<Int> {
     return readLines(filename).map { it.toInt() }
 }
+
+fun IntRange.overlaps(other: IntRange): Boolean = first <= other.last && last >= other.first
+val IntRange.length: Int get() = if (last >= first) last - first + 1 else 0

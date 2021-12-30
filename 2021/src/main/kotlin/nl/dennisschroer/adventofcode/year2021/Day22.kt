@@ -3,55 +3,140 @@ package nl.dennisschroer.adventofcode.year2021
 import kotlin.math.max
 import kotlin.math.min
 
+
 class Day22 {
-    data class RebootStep(val command: String, val xs: IntRange, val ys: IntRange, val zs: IntRange)
+    data class RebootStep(val command: String, val region: Region)
+    data class Region(val xs: IntRange, val ys: IntRange, val zs: IntRange) {
+        fun overlaps(other: Region) = xs.overlaps(other.xs) && ys.overlaps(other.ys) && zs.overlaps(other.zs)
+        fun size(): Long = xs.length.toLong() * ys.length * zs.length
+    }
 
-    fun part1(input: List<String>): Int {
-        val result = sortedSetOf<Int>()
-        val validRange = -50..50
-        var hash: Int
+    fun part1(input: List<String>): Long {
+        return runInitializationProcedure(parseRebootSteps(input, -50, 50))
+    }
 
-        parseRebootSteps(input).forEach { step ->
-            step.xs.forEach { x ->
-                step.ys.forEach { y ->
-                    step.zs.forEach { z ->
-                        if (validRange.contains(x) && validRange.contains(y) && validRange.contains(z)) {
-                            // By multiplying with prime numbers each coordinate gets assigned a unique number
-                            hash = x * 10000 + y * 100 + z
-                            if (step.command == "on") {
-                                result.add(hash)
-                            } else {
-                                result.remove(hash)
-                            }
-                        }
+    fun part2(input: List<String>): Long {
+        return runInitializationProcedure(parseRebootSteps(input, Int.MIN_VALUE, Int.MAX_VALUE))
+    }
+
+    private fun runInitializationProcedure(steps: List<RebootStep>): Long {
+        // List of regions where all coordinates are on
+        val regions = mutableListOf<Region>()
+
+        steps.forEachIndexed { index, step ->
+            // Find regions with overlap
+            regions.filter { it.overlaps(step.region) }.forEach { overlappingRegion ->
+                val newRegions = subtractRegion(overlappingRegion, step.region)
+
+                // Add only the sections without overlap
+                regions.remove(overlappingRegion)
+                regions.addAll(newRegions)
+            }
+
+            // Only when the new step turns coordinates on, add it
+            if (step.command == "on") {
+                regions.add(step.region)
+            }
+
+            println("Step ${index + 1} of ${steps.size}; Regions: ${regions.size}, on: ${regions.sumOf { it.size() }}")
+
+            // Assert step
+            regions.forEachIndexed { i, a ->
+                regions.drop(i + 1).forEach { b ->
+                    assert(!a.overlaps(b)) {
+                        "$a overlaps with $b"
                     }
                 }
             }
         }
 
-        return result.size
+        return regions.sumOf { it.size() }
     }
 
-    fun part2(input: List<String>): Int {
-        return -1
+    fun subtractRegion(region: Region, overlapping: Region): List<Region> {
+        // Split the region in 27 sections
+        val newRegions = mutableSetOf<Region>()
+
+        listOf((region.xs.first until overlapping.xs.first), (max(region.xs.first, overlapping.xs.first)..min(region.xs.last, overlapping.xs.last)), (overlapping.xs.last + 1..region.xs.last)).forEach { xs ->
+            listOf((region.ys.first until overlapping.ys.first), (max(region.ys.first, overlapping.ys.first)..min(region.ys.last, overlapping.ys.last)), (overlapping.ys.last + 1..region.ys.last)).forEach { ys ->
+                listOf((region.zs.first until overlapping.zs.first), (max(region.zs.first, overlapping.zs.first)..min(region.zs.last, overlapping.zs.last)), (overlapping.zs.last + 1..region.zs.last)).forEach { zs ->
+                    newRegions.add(Region(xs, ys, zs))
+                }
+            }
+        }
+
+        return newRegions.filter { it.size() > 0 }.filter { !it.overlaps(overlapping) }
+
+//
+//        // Split the region in 8 sections
+//        val splitPoint = Triple(
+//            if (region.xs.contains(overlapping.xs.first)) overlapping.xs.first else overlapping.xs.last + 1,
+//            if (region.ys.contains(overlapping.ys.first)) overlapping.ys.first else overlapping.ys.last + 1,
+//            if (region.zs.contains(overlapping.zs.first)) overlapping.zs.first else overlapping.zs.last + 1,
+//        )
+//
+//        return listOf(
+//            Region(
+//                region.xs.first until splitPoint.first,
+//                region.ys.first until splitPoint.second,
+//                region.zs.first until splitPoint.third,
+//            ),
+//            Region(
+//                splitPoint.first..region.xs.last,
+//                region.ys.first until splitPoint.second,
+//                region.zs.first until splitPoint.third,
+//            ),
+//            Region(
+//                region.xs.first until splitPoint.first,
+//                splitPoint.second..region.ys.last,
+//                region.zs.first until splitPoint.third,
+//            ),
+//            Region(
+//                splitPoint.first..region.xs.last,
+//                splitPoint.second..region.ys.last,
+//                region.zs.first until splitPoint.third,
+//            ),
+//            Region(
+//                region.xs.first until splitPoint.first,
+//                region.ys.first until splitPoint.second,
+//                splitPoint.third..region.zs.last,
+//            ),
+//            Region(
+//                splitPoint.first..region.xs.last,
+//                region.ys.first until splitPoint.second,
+//                splitPoint.third..region.zs.last,
+//            ),
+//            Region(
+//                region.xs.first until splitPoint.first,
+//                splitPoint.second..region.ys.last,
+//                splitPoint.third..region.zs.last,
+//            ),
+//            Region(
+//                splitPoint.first..region.xs.last,
+//                splitPoint.second..region.ys.last,
+//                splitPoint.third..region.zs.last,
+//            )
+//        ).filter { it.size() > 0 }
     }
 
-    fun parseRebootSteps(input: List<String>): List<RebootStep> {
+    private fun parseRebootSteps(input: List<String>, min: Int, max: Int): List<RebootStep> {
         return input.map { line ->
             val command = line.substringBefore(" ")
             val coordinates = line.substringAfter(" ").split(",").map { it.drop(2) }
 
             RebootStep(
                 command,
-                toIntRange(coordinates[0]),
-                toIntRange(coordinates[1]),
-                toIntRange(coordinates[2])
+                Region(
+                    toIntRange(coordinates[0], min, max),
+                    toIntRange(coordinates[1], min, max),
+                    toIntRange(coordinates[2], min, max)
+                )
             )
-        }
+        }.filter { it.region.size() > 0 }
     }
 
-    private fun toIntRange(rangeDefinition: String): IntRange =
-        max(rangeDefinition.substringBefore(".").toInt(), -50)..min(rangeDefinition.substringAfterLast(".").toInt(), 50)
+    private fun toIntRange(rangeDefinition: String, min: Int, max: Int): IntRange =
+        max(rangeDefinition.substringBefore(".").toInt(), min)..min(rangeDefinition.substringAfterLast(".").toInt(), max)
 }
 
 fun main() {
