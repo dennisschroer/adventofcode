@@ -38,14 +38,15 @@ class Day24 {
     val c = listOf(1,  1,   1,  1, 26,  1,  26,  1, 26, 26,  1, 26, 26, 26)
 
     // Conclusions:
-    // w4 == w3                    w3=9 w4=9
-    // w6 == w5 + 1 mod 26         w5=8 w6=9
-    // w8 == w7 + 2 mod 26         w7=7 w8=9
-    // w9 == w2 + 7 mod 26         w2=2 w9=9
-    // w11 == w10 - 1 mod 26       w10=9 w11=8
-    // w12 == w1 + 4 mod 26        w1=5 w12=9
-    // w13 == w0 - 2 mod 26        w0=9 w13=7
+    // w4 == w3                    w3=9 w4=9         w3=1 w4=1
+    // w6 == w5 + 1 mod 26         w5=8 w6=9         w5=1 w6=2
+    // w8 == w7 + 2 mod 26         w7=7 w8=9         w7=1 w8=3
+    // w9 == w2 + 7 mod 26         w2=2 w9=9         w2=1 w9=8
+    // w11 == w10 - 1 mod 26       w10=9 w11=8       w10=2 w11=1
+    // w12 == w1 + 4 mod 26        w1=5 w12=9        w1=1 w12=5
+    // w13 == w0 - 2 mod 26        w0=9 w13=7        w0=3 w13=1
     // => largest = 95299897999897
+    // => smallest = 31111121382151
 
     fun part1(input: List<String>): Long {
         val commands = parseCommands(input)
