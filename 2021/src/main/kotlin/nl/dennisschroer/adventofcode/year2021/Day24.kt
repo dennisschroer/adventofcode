@@ -6,6 +6,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.lang.Exception
+import java.util.SortedSet
 
 class Day24 {
     data class Either(val first: Char?, val second: Int?) {
@@ -20,67 +21,126 @@ class Day24 {
     data class Memory(val w: Int = 0, val x: Int = 0, val y: Int = 0, val z: Int = 0)
     data class State(val memory: Map<Char, Int> = mutableMapOf('w' to 0, 'x' to 0, 'y' to 0, 'z' to 0), val input: List<Int> = listOf())
 
+    val a = listOf(11, 14, 10, 14, -8, 14, -11, 10, -6, -9, 12, -5, -4, -9)
+    val b = listOf(7, 8, 16, 8, 3, 12, 1, 8, 8, 14, 4, 14, 15, 6)
+    val c = listOf(1, 1, 1, 1, 26, 1, 26, 1, 26, 26, 1, 26, 26, 26)
+
     fun part1(input: List<String>): Long {
         val commands = parseCommands(input)
 
         // Smart execution: first statements are always equal for same input
-        var remainingCommands = optimize(commands)
-        val blocks = (0 until 14).associateWith {
+        var remainingCommands = commands
+        val blocks = (0 until 14).map {
             val index = remainingCommands.drop(1).indexOfFirst { it.instruction == "inp" }
-            val result = remainingCommands.take(index + 1)
+            val result = if (index > 0) {
+                remainingCommands.take(index + 1)
+            } else {
+                remainingCommands
+            }
             remainingCommands = remainingCommands.drop(index + 1)
             result
         }
 
-        return runBlocking { findLargest(blocks.values, State())!! }
 
+        var possibleOutcomes: SortedSet<Int> = sortedSetOf(0)
+        val digits = mutableMapOf<Int, Int>()
+
+        println("a = " + blocks.map { it[5].b?.second })
+        println("b = " + blocks.map { it[15].b?.second })
+        println("c = " + blocks.map { it[4].b?.second })
+
+        blocks.forEachIndexed { index, commands ->
+            println(index)
+
+            val possibleZs = possibleOutcomes
+            possibleOutcomes = listOf(9, 8, 7, 6, 5, 4, 3, 2, 1).flatMap { input ->
+                digits[index] = input
+                possibleZs.map { z ->
+                    val outcome = custom(input, z, a[index], b[index], c[index])
+                    if (outcome == 0) {
+                        println("OUTPUT 0 at index $index for input $input and z $z, digits = ${digits.map { it.value }.joinToString("")}")
+                    }
+                    outcome
+                }.also { println() }
+            }.toSortedSet()
+
+
+            //println(possibleOutcomes)
+            //println(commands[5])
+            //println(commands[15])
+            //println(commands[4])
+        }
+
+        println(possibleOutcomes.contains(0))
+
+        return -1
+
+        //return findLargest(blocks)
 
 //        val largest = input().first { runProgram(commands, it).memory['z'] == 0 }
-
+//
 //        return largest.joinToString("").toLong()
 //        return -1
     }
 
-    private suspend fun findLargest(blocks: Collection<List<Command>>, state: State): Long? {
-        if (blocks.isEmpty()) {
-            return null
+    private fun findLargest(blocks: Collection<List<Command>>): Long {
+        listOf(9, 8, 7, 6, 5, 4, 3, 2, 1).forEach {
+            println("===== $it =====")
+            println(runProgram(blocks.first(), State(input = listOf(it))))
         }
 
-        val largest = coroutineScope {
-            listOf(9, 8, 7, 6, 5, 4, 3, 2, 1).associateWith { digit ->
-                if (blocks.size > 10) {
-                    repeat(14 - blocks.size) { print("> ") }
-                    println(digit)
-                }
+        val digit = listOf(9, 8, 7, 6, 5, 4, 3, 2, 1).first { runProgram(blocks.first(), State(input = listOf(it))).memory['z'] == 0 }.toLong()
 
-                val nextState = runProgram(blocks.first(), State(memory = state.memory, input = listOf(digit)))
-                async { findLargest(blocks.drop(1), nextState) }
-            }.mapValues { awaitAll(it.value) }.toList().firstOrNull { it.second != null }
+        return if (blocks.size == 1) {
+            digit
+        } else {
+            val largest = findLargest(blocks.drop(1))
+            "${digit}${largest}".toLong()
         }
 
-        if (largest != null) {
-            return "${largest.first}${largest.second}".toLong()
-        }
 
-        return null
+//        val largest = coroutineScope {
+//            listOf(9, 8, 7, 6, 5, 4, 3, 2, 1).associateWith { digit ->
+//                if (blocks.size > 10) {
+//                    repeat(14 - blocks.size) { print("> ") }
+//                    println(digit)
+//                }
+//
+//                val nextState = runProgram(blocks.first(), State(memory = state.memory, input = listOf(digit)))
+//                async { findLargest(blocks.drop(1), nextState) }
+//            }.mapValues { awaitAll(it.value) }.toList().firstOrNull { it.second != null }
+//        }
+
+
     }
 
-    private fun custom(state: State, a: Int, b: Int) {
-        var w = state.memory['w']!!
-        var x = state.memory['x']!!
-        var y = state.memory['y']!!
-        var z = state.memory['z']!!
+//    private fun doCustom() {
+//        val a = listOf(11, 14, 10, 14, -8, 14, -11, 10, -6, -9, 12, -5, -4)
+//        val b = listOf(7, 8, 16, 8, 3, 12, 1, 8, 8, 14, 4, 14, 15)
+//        val c = listOf(1, 1, 1, 1, 26, 1, 26, 1, 26, 26, 1, 26, 26)
+//
+//        val result = doCustomRecursive(0, a, b, c)
+//
+//    }
+//
+//    private fun doCustomRecursive(z: Int, a: List<Int>, b: List<Int>, c: List<Int>): Long {
+//        listOf(9, 8, 7, 6, 5, 4, 3, 2, 1).forEach {
+//            val result = doCustomRecursive(custom(it, z, a.first(), b.first(), c.first()), a.drop(1), b.drop(1), c.drop(1))
+//            return "$it$result".toLong()
+//
+//        }
+//    }
 
-        x = if (z % 26 + a == w) 1 else 0
-        y = 25 * x + 1
-        z = z * y
-        y = (w + b) * x
-        z = z + y
-
-
-        if (z % 26 + a == w) {
-            z = 26 * z + w + b
+    private fun custom(input: Int, z: Int, a: Int, b: Int, c: Int): Int {
+        // a = var2
+        // b = var3
+        // c = var1
+        val x = z % 26 + a
+        var z2 = z / c
+        if (x != input) {
+            z2 = (26 * z2) + input + b
         }
+        return z2
     }
 
     private fun optimize(commands: List<Command>): List<Command> {
@@ -149,7 +209,7 @@ class Day24 {
     fun runProgram(commands: List<Command>, state: State): State = commands.fold(state, this::runCommand)
 
     fun runCommand(state: State, command: Command): State {
-        return when (command.instruction) {
+        val result = when (command.instruction) {
             "inp" -> State(
                 state.memory.toMutableMap().also { it[command.a] = state.input.first() },
                 state.input.drop(1)
@@ -184,6 +244,10 @@ class Day24 {
             )
             else -> throw Exception()
         }
+
+        println("$command   \t$state \t=>\t$result")
+
+        return result
     }
 
     private fun getIntVal(it: MutableMap<Char, Int>, either: Either): Int = if (either.first != null) it[either.first]!! else either.second!!
