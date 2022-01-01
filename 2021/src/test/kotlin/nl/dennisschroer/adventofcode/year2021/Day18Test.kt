@@ -107,7 +107,7 @@ internal class Day18Test {
     @Test
     fun testPart2() {
         val lines = readLines("testDay18")
-        assertEquals(0, Day18().part2(lines))
+        assertEquals(3993, Day18().part2(lines))
     }
 
     private fun assertLike(fishExpected: List<Day18.E>, fishActual: List<Day18.E>) {

@@ -13,7 +13,11 @@ class Day18 {
     }
 
     fun part2(input: List<String>): Int {
-        return -1
+        val fishes = input.map { parseToFish(it) }
+
+        val pairs = fishes.flatMap { fish -> fishes.map { fish to it } }
+
+        return pairs.maxOf { (a, b) -> magnitude(addAndReduce(a, b)) }
     }
 
     fun addAndReduceAll(fishes: List<List<E>>): List<E> {
@@ -85,7 +89,7 @@ class Day18 {
         return reducedFish[0].value
     }
 
-    fun replacePairWithMagnitude(fish: List<E>): List<E> {
+    private fun replacePairWithMagnitude(fish: List<E>): List<E> {
         var firstPair = -1
         var index = 0
         fish.windowed(4).forEach {
