@@ -13,14 +13,6 @@ internal class Day18Test {
         assertLike(d.parseToFish("[[6,[5,[7,0]]],3]"), d.explodeOrSplit(d.parseToFish("[[6,[5,[4,[3,2]]]],1]")))
         assertLike(d.parseToFish("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"), d.explodeOrSplit(d.parseToFish("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]")))
         assertLike(d.parseToFish("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"), d.explodeOrSplit(d.parseToFish("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]")))
-        assertLike(
-            d.parseToFish("[[[[0,[13,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]],[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]]"),
-            d.explodeOrSplit(d.parseToFish("[[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]],[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]]"))
-        )
-    }
-
-    private fun assertLike(fishExpected: Day18.Node, fishActual: Day18.Node) {
-        assertTrue(fishExpected.isLike(fishActual), "Fishes are not the same\nExpected: $fishExpected\nActual:   $fishActual")
     }
 
     @Test
@@ -41,19 +33,35 @@ internal class Day18Test {
     @Test
     fun testAddAndReduce() {
         val d = Day18()
-        assertEquals(
+        assertLike(
+            d.parseToFish("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"),
+            d.addAndReduce(
+                d.parseToFish("[[[[4,3],4],4],[7,[[8,4],9]]]"),
+                d.parseToFish("[1,1]")
+            )
+        )
+
+        assertLike(
             d.parseToFish("[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"),
             d.addAndReduce(
                 d.parseToFish("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]"),
                 d.parseToFish("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]")
             )
         )
-        
+
         assertLike(
             d.parseToFish("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
             d.addAndReduce(
                 d.parseToFish("[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"),
                 d.parseToFish("[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]")
+            )
+        )
+
+        assertLike(
+            d.parseToFish("[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"),
+            d.addAndReduce(
+                d.parseToFish("[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"),
+                d.parseToFish("[7,[5,[[3,8],[1,4]]]]")
             )
         )
     }
@@ -100,5 +108,12 @@ internal class Day18Test {
     fun testPart2() {
         val lines = readLines("testDay18")
         assertEquals(0, Day18().part2(lines))
+    }
+
+    private fun assertLike(fishExpected: List<Day18.E>, fishActual: List<Day18.E>) {
+        assertTrue(
+            fishExpected == fishActual,
+            "Fishes are not the same\nExpected: ${Day18().fishToString(fishExpected)}\nActual:   ${Day18().fishToString(fishActual)}"
+        )
     }
 }

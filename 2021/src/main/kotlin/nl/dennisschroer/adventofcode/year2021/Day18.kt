@@ -1,222 +1,104 @@
 package nl.dennisschroer.adventofcode.year2021
 
-import kotlin.random.Random
-
 class Day18 {
-    data class E(val type: Char, val value: Int)
+    data class E(val type: Char, val value: Int) {
+        constructor(type: Char) : this(type, 0)
+        constructor(value: Int) : this('L', value)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    abstract class Node(var parent: Node?) {
-        protected val id = Random.nextInt() // Random id to trick equals method
-        fun depth(): Int = if (parent == null) 1 else 1 + (parent as Node).depth()
-        abstract fun isLike(other: Node): Boolean
-    }
-
-    class PairNode(var pair: Pair<Node, Node>) : Node(null) {
-        init {
-            pair.first.parent = this
-            pair.second.parent = this
-        }
-
-        override fun isLike(other: Node) = other is PairNode && this.pair.first.isLike(other.pair.first) && this.pair.second.isLike(other.pair.second)
-        override fun equals(other: Any?): Boolean = other is PairNode && this.id == other.id
-        override fun toString(): String = "[${pair.first},${pair.second}]"
-    }
-
-    data class ValueNode(var value: Int) : Node(null) {
-        override fun isLike(other: Node) = other is ValueNode && this.value == other.value
-        override fun toString(): String = "$value"
+        override fun toString(): String = if (type == 'L') "$value" else type.toString()
     }
 
     fun part1(input: List<String>): Int {
         return magnitude(addAndReduceAll(input.map { parseToFish(it) }))
     }
 
-    fun addAndReduceAll(fishes: List<Node>): Node {
-        return fishes.reduce(this::addAndReduce)
-    }
-
     fun part2(input: List<String>): Int {
         return -1
     }
 
-    fun addAndReduce(fish1: Node, fish2: Node): Node {
-        println("  $fish1\n+ $fish2")
-        val result = reduce(PairNode(fish1 to fish2))
-        println("= $result")
-        return result
+    fun addAndReduceAll(fishes: List<List<E>>): List<E> {
+        return fishes.reduce(this::addAndReduce)
     }
 
-    fun reduce(fish: Node): Node {
-        repeat(1000) { explodeOrSplit(fish) }
-        println()
+    fun addAndReduce(fish1: List<E>, fish2: List<E>): List<E> {
+        return reduce(listOf(E('[')) + fish1 + fish2 + listOf(E(']')))
+    }
+
+    fun reduce(fish: List<E>): List<E> {
+        var currentFish = fish
+        var previousFish: List<E>
+
+        do {
+            previousFish = currentFish
+            currentFish = explodeOrSplit(currentFish)
+        } while (currentFish != previousFish)
+
+        return currentFish
+    }
+
+    fun explodeOrSplit(fish: List<E>): List<E> {
+        println(fishToString(fish))
+
+        val indexToExplode = fish.indices.firstOrNull { index ->
+            val head = fish.take(index)
+            fish[index].type == '[' && (head.count { it.type == '[' } - head.count { it.type == ']' }) >= 4
+        }
+
+        if (indexToExplode != null) {
+            println("Exploding ${fishToString(fish.drop(indexToExplode).take(4))}")
+            val indexOfFirst = indexToExplode + 1
+            val indexOfSecond = indexToExplode + 2
+            val indexOfLeft = fish.take(indexToExplode).indexOfLast { it.type == 'L' }
+            val indexOfRight = fish.drop(indexToExplode + 3).indexOfFirst { it.type == 'L' } + indexToExplode + 3
+
+            val result = fish.toMutableList()
+            if (indexOfLeft >= 0) {
+                result[indexOfLeft] = E(result[indexOfLeft].value + result[indexOfFirst].value)
+            }
+            if (indexOfRight >= 0) {
+                result[indexOfRight] = E(result[indexOfRight].value + result[indexOfSecond].value)
+            }
+
+            return result.take(indexToExplode) + listOf(E(0)) + result.drop(indexToExplode + 4)
+        }
+
+        val indexToSplit = fish.indices.firstOrNull { fish[it].value > 9 }
+        if (indexToSplit != null) {
+            val value = fish[indexToSplit].value
+            println("Splitting $value")
+            return fish.take(indexToSplit) + listOf(E('['), E(value / 2), E(value - value / 2), E(']')) + fish.drop(indexToSplit + 1)
+        }
+
         return fish
     }
 
-    fun explodeOrSplit(fish: Node): Node {
-        var done = false
+    fun fishToString(fish: List<E>): String = fish.joinToString(",")
+        .replace("[,", "[")
+        .replace(",]", "]")
 
-        // Lets walk the tree
-        walk(fish, { pairNode: PairNode ->
-            if (!done && pairNode.depth() > 4) {
-                explode(pairNode)
-                done = true
+    fun magnitude(fish: List<E>): Int {
+        var reducedFish = fish
+        while (reducedFish[0].type != 'L') {
+            reducedFish = replacePairWithMagnitude(reducedFish)
+        }
+
+        return reducedFish[0].value
+    }
+
+    fun replacePairWithMagnitude(fish: List<E>): List<E> {
+        var firstPair = -1
+        var index = 0
+        fish.windowed(4).forEach {
+            if (it[0].type == '[' && it[1].type == 'L' && it[2].type == 'L' && it[3].type == ']') {
+                firstPair = index
             }
-        }, { })
-
-        walk(fish, { }, { valueNode: ValueNode ->
-            if (!done && valueNode.value > 9) {
-                split(valueNode)
-                done = true
-            }
-        })
-
-        // Assert
-        walk(fish, { pairNode: PairNode ->
-            assert(pairNode.pair.first.parent == pairNode)
-            assert(pairNode.pair.second.parent == pairNode)
-        }, { })
-
-        if (done) {
-            println("   => $fish")
-        } else {
-            print("*")
+            index++
         }
 
-        return fish
+        return fish.take(firstPair) + E(3 * fish[firstPair + 1].value + 2 * fish[firstPair + 2].value) + fish.drop(firstPair + 4)
     }
 
-    fun walk(fish: Node, visitPair: (pairNode: PairNode) -> Unit, visitValue: (valueNode: ValueNode) -> Unit) {
-        if (fish is PairNode) {
-            walk(fish.pair.first, visitPair, visitValue)
-            visitPair(fish)
-            walk(fish.pair.second, visitPair, visitValue)
-        } else {
-            visitValue(fish as ValueNode)
-        }
-    }
-
-    private fun explode(node: PairNode) {
-        print("Exploding $node \t")
-        left(node)?.let {
-//            println("  Left: $it")
-            it.value = it.value + (node.pair.first as ValueNode).value
-        }
-        right(node)?.let {
-//            println("  Right: $it")
-            it.value = it.value + (node.pair.second as ValueNode).value
-        }
-
-        replaceInParent(node, ValueNode(0))
-    }
-
-
-    private fun split(node: ValueNode) {
-        print("Splitting $node     \t")
-//        println("Splitting $node, parent: ${node.parent}")
-        replaceInParent(node, PairNode(ValueNode(node.value / 2) to ValueNode(node.value - (node.value / 2))))
-    }
-
-    private fun replaceInParent(node: Node, newNode: Node) {
-        val parent = node.parent as PairNode
-        newNode.parent = parent
-        if (node == parent.pair.first) {
-            parent.pair = newNode to parent.pair.second
-        }
-        if (node == parent.pair.second) {
-            parent.pair = parent.pair.first to newNode
-        }
-    }
-
-    private fun left(fish: Node): ValueNode? {
-        var currentNode: Node? = fish
-
-        // Traverse up
-        while (currentNode!!.parent != null && currentNode.parent is PairNode && currentNode == (currentNode.parent as PairNode).pair.first) {
-            currentNode = currentNode.parent as PairNode
-        }
-        currentNode = currentNode.parent
-
-        // Exception: if this is the leftmost node return null
-        if (currentNode == null) return null
-
-        // Go left
-        currentNode = (currentNode as PairNode).pair.first
-
-        // Go right until we hit a value
-        while (currentNode is PairNode) {
-            currentNode = currentNode.pair.second
-        }
-
-        return currentNode as ValueNode
-    }
-
-    private fun right(fish: Node): ValueNode? {
-        var currentNode: Node? = fish
-
-        // Traverse up
-        while (currentNode!!.parent != null && currentNode.parent is PairNode && currentNode == (currentNode.parent as PairNode).pair.second) {
-            currentNode = currentNode.parent as PairNode
-        }
-        currentNode = currentNode.parent
-
-        // Exception: if this is the rightmost node return null
-        if (currentNode == null) return null
-
-        // Go right
-        currentNode = (currentNode as PairNode).pair.second
-
-        // Go left until we hit a value
-        while (currentNode is PairNode) {
-            currentNode = currentNode.pair.first
-        }
-
-        return currentNode as ValueNode
-    }
-
-
-    fun magnitude(fish: Node): Int {
-        return if (fish is PairNode) {
-            3 * magnitude(fish.pair.first) + 2 * magnitude(fish.pair.second)
-        } else {
-            (fish as ValueNode).value
-        }
-    }
-
-    fun parseToFish(line: String): Node {
-        val (node, result) = parseToNode(line)
-        assert(result.isEmpty())
-        return node
-    }
-
-    fun parseToNode(line: String): Pair<Node, String> {
-        return if (line[0] == '[') {
-            val (subNode1, remaining1) = parseToNode(line.drop(1))
-            val (subNode2, remaining2) = parseToNode(remaining1.drop(1))
-            val parent = PairNode(subNode1 to subNode2)
-            subNode1.parent = parent
-            subNode2.parent = parent
-            parent to remaining2.drop(1)
-        } else {
-
-            ValueNode(line.takeWhile { it.isDigit() }.toInt()) to line.dropWhile { it.isDigit() }
-        }
-    }
+    fun parseToFish(line: String): List<E> = line.toList().map { if (it.isDigit()) E(it.digitToInt()) else E(it) }.filter { it.type != ',' }
 }
 
 fun main() {
