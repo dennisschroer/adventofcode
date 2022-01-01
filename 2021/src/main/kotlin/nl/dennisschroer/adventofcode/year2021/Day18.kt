@@ -3,13 +3,31 @@ package nl.dennisschroer.adventofcode.year2021
 import kotlin.random.Random
 
 class Day18 {
+    data class E(val type: Char, val value: Int)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     abstract class Node(var parent: Node?) {
+        protected val id = Random.nextInt() // Random id to trick equals method
         fun depth(): Int = if (parent == null) 1 else 1 + (parent as Node).depth()
-        abstract fun isLike(other : Node) : Boolean
+        abstract fun isLike(other: Node): Boolean
     }
 
     class PairNode(var pair: Pair<Node, Node>) : Node(null) {
-        private val id = Random.nextInt()
         init {
             pair.first.parent = this
             pair.second.parent = this
@@ -26,7 +44,7 @@ class Day18 {
     }
 
     fun part1(input: List<String>): Int {
-        return addAndReduceAll(input.map { parseToFish(it) }).let { magnitude(it) }
+        return magnitude(addAndReduceAll(input.map { parseToFish(it) }))
     }
 
     fun addAndReduceAll(fishes: List<Node>): Node {
@@ -39,10 +57,7 @@ class Day18 {
 
     fun addAndReduce(fish1: Node, fish2: Node): Node {
         println("  $fish1\n+ $fish2")
-        val parent = PairNode(fish1 to fish2)
-        fish1.parent = parent
-        fish2.parent = parent
-        val result = reduce(parent)
+        val result = reduce(PairNode(fish1 to fish2))
         println("= $result")
         return result
     }
@@ -71,6 +86,12 @@ class Day18 {
             }
         })
 
+        // Assert
+        walk(fish, { pairNode: PairNode ->
+            assert(pairNode.pair.first.parent == pairNode)
+            assert(pairNode.pair.second.parent == pairNode)
+        }, { })
+
         if (done) {
             println("   => $fish")
         } else {
@@ -91,32 +112,27 @@ class Day18 {
     }
 
     private fun explode(node: PairNode) {
-        println("Exploding $node")
+        print("Exploding $node \t")
         left(node)?.let {
-            println("  Left: $it")
+//            println("  Left: $it")
             it.value = it.value + (node.pair.first as ValueNode).value
         }
         right(node)?.let {
-            println("  Right: $it")
+//            println("  Right: $it")
             it.value = it.value + (node.pair.second as ValueNode).value
         }
 
-        val parent = node.parent as PairNode
-        val newNode = ValueNode(0)
-        newNode.parent = parent
-        if (node == parent.pair.first) {
-            parent.pair = newNode to parent.pair.second
-        }
-        if (node == parent.pair.second) {
-            parent.pair = parent.pair.first to newNode
-        }
+        replaceInParent(node, ValueNode(0))
     }
 
+
     private fun split(node: ValueNode) {
-        println("Splitting $node, parent: ${node.parent}")
-        val newNode = PairNode(ValueNode(node.value / 2) to ValueNode(node.value - (node.value / 2)))
-        newNode.pair.first.parent = newNode
-        newNode.pair.second.parent = newNode
+        print("Splitting $node     \t")
+//        println("Splitting $node, parent: ${node.parent}")
+        replaceInParent(node, PairNode(ValueNode(node.value / 2) to ValueNode(node.value - (node.value / 2))))
+    }
+
+    private fun replaceInParent(node: Node, newNode: Node) {
         val parent = node.parent as PairNode
         newNode.parent = parent
         if (node == parent.pair.first) {
