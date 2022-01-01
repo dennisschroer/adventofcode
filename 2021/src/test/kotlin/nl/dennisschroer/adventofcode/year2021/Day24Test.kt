@@ -13,7 +13,7 @@ internal class Day24Test {
             mul x -1
         """.trimIndent().split("\n")
 
-        assertEquals(-3, Day24().runProgram(Day24().parseCommands(program), listOf(3)).memory['x'])
+        assertEquals(-3, Day24().optimizeAndRunProgram(Day24().parseCommands(program), listOf(3)).memory['x'])
     }
 
     @Test
@@ -25,10 +25,10 @@ internal class Day24Test {
             eql z x
         """.trimIndent().split("\n")
 
-        assertEquals(1, Day24().runProgram(Day24().parseCommands(program), listOf(1, 3)).memory['z'])
-        assertEquals(0, Day24().runProgram(Day24().parseCommands(program), listOf(1, 4)).memory['z'])
-        assertEquals(1, Day24().runProgram(Day24().parseCommands(program), listOf(103, 309)).memory['z'])
-        assertEquals(1, Day24().runProgram(Day24().parseCommands(program), listOf(-10, -30)).memory['z'])
+        assertEquals(1, Day24().optimizeAndRunProgram(Day24().parseCommands(program), listOf(1, 3)).memory['z'])
+        assertEquals(0, Day24().optimizeAndRunProgram(Day24().parseCommands(program), listOf(1, 4)).memory['z'])
+        assertEquals(1, Day24().optimizeAndRunProgram(Day24().parseCommands(program), listOf(103, 309)).memory['z'])
+        assertEquals(1, Day24().optimizeAndRunProgram(Day24().parseCommands(program), listOf(-10, -30)).memory['z'])
     }
 
     @Test
@@ -48,7 +48,7 @@ internal class Day24Test {
         """.trimIndent().split("\n")
 
         // 1111
-        val state = Day24().runProgram(Day24().parseCommands(program), listOf(15))
+        val state = Day24().optimizeAndRunProgram(Day24().parseCommands(program), listOf(15))
 
         assertEquals(1, state.memory['z'])
         assertEquals(1, state.memory['y'])
@@ -56,7 +56,7 @@ internal class Day24Test {
         assertEquals(1, state.memory['w'])
 
         // 0110
-        val state2 = Day24().runProgram(Day24().parseCommands(program), listOf(6))
+        val state2 = Day24().optimizeAndRunProgram(Day24().parseCommands(program), listOf(6))
 
         assertEquals(0, state2.memory['z'])
         assertEquals(1, state2.memory['y'])
