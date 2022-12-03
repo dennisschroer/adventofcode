@@ -12,6 +12,6 @@ class Day2Test {
 
     @Test
     fun part2() {
-        assertEquals(0, day2part2(readLines("day2")))
+        assertEquals(12, day2part2(readLines("day2")))
     }
 }
