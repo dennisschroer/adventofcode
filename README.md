@@ -9,6 +9,7 @@ Each year, up to 50 stars can be achieved. In the table my acquired stars can be
 
 | Year | Language | Stars |
 |------|----------|-------|
+| 2022 | Kotlin   | 8     |
 | 2021 | Kotlin   | 50    |
 | 2020 | Haskell  | 34    |
 | 2018 | Groovy   | 13    |
