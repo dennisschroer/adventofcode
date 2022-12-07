@@ -19,5 +19,6 @@ fun readNumbers(filename: String): List<Int> {
     return readLines(filename).map { it.toInt() }
 }
 
+fun IntRange.fullyContains(other: IntRange): Boolean = first <=other.first && last >= other.last
 fun IntRange.overlaps(other: IntRange): Boolean = first <= other.last && last >= other.first
 val IntRange.length: Int get() = if (last >= first) last - first + 1 else 0
