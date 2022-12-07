@@ -14,7 +14,13 @@ fun parseRange(range: String): IntRange =
     range.substringBefore("-").toInt()..range.substringAfter("-").toInt()
 
 fun day4part2(input: List<String>): Int {
-    return -1
+    return input
+        // Split on comma
+        .map { it.substringBefore(",") to it.substringAfter(",") }
+        // Parse to ranges
+        .map { parseRange(it.first) to parseRange(it.second) }
+        // Keep only those which overlap
+        .count { it.first.overlaps(it.second) }
 }
 
 fun main() {
