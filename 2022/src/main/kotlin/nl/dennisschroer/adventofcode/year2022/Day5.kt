@@ -51,8 +51,29 @@ fun parseStacks(input: List<String>): Map<Int, String> {
     return stacks
 }
 
-fun day5part2(input: List<List<String>>): Int {
-    return -1
+fun day5part2(input: List<List<String>>): String {
+    val rawStacks = input.first()
+    val rawSteps = input.last()
+
+    val stacks = parseStacks(rawStacks)
+    val steps = parseSteps(rawSteps)
+
+    // Debug: print stacks
+    stacks.forEach { println(it) }
+
+    val result = steps.fold(stacks) { stacks, step ->
+        println(step)
+
+        val newStacks = stacks.toMutableMap()
+        newStacks[step.from] = stacks[step.from]!!.dropLast(step.count)
+        newStacks[step.to] = stacks[step.to] + stacks[step.from]!!.takeLast(step.count)
+
+        newStacks.forEach { println(it) }
+        newStacks
+    }
+
+    // Get top one of each stack
+    return result.values.fold("") { acc, stack -> acc + stack.last() }
 }
 
 fun main() {
